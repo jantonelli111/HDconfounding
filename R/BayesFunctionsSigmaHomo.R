@@ -1,11 +1,3 @@
-LogTheta = function(theta, a, b, w, gamma) {
-  part1 = (a-1)*log(theta)
-  part2 = (b-1)*log(1 - theta)
-  part3 = sum(w*gamma)*log(theta)
-  part4 = sum(log((1 - theta^w)^(1-gamma)))
-  return(part1 + part2 + part3 + part4)
-}
-
 BayesSSLem = function(nScans = 20000, burn = 10000, thin = 10, 
                       n, p, y, x, z, lambda1 = 0.1, 
                       lambda0start = 20, numBlocks = 10, w,
@@ -37,7 +29,7 @@ BayesSSLem = function(nScans = 20000, burn = 10000, thin = 10,
   
   for (i in 2 : nScans) {
     
-    if (i %% 100 == 0) print(i)
+    if (i %% 1000 == 0) print(paste(i, "MCMC scans have finished"))
     
     D = diag(c(K,K,tauPost[i-1,]))
     Dinv = diag(1/diag(D))
@@ -111,7 +103,6 @@ BayesSSLem = function(nScans = 20000, burn = 10000, thin = 10,
       
       lambda0 = sqrt(2*(p - mean(wut1)) / mean(wut2))
       diff = lambda0 - lambda0Post[i]
-      print(c(lambda0, diff))
       lambda0Post[i] = lambda0
       
     }
@@ -152,7 +143,7 @@ BayesSSL = function(nScans, burn, thin,
   
   for (i in 2 : nScans) {
     
-    if (i %% 100 == 0) print(i)
+    if (i %% 1000 == 0) print(paste(i, "MCMC scans have finished"))
     
     D = diag(c(K,K,tauPost[i-1,]))
     Dinv = diag(1/diag(D))
@@ -220,7 +211,8 @@ BayesSSL = function(nScans, burn, thin,
   }
   
   keep = seq((burn + 1), nScans, by=thin)
-  return(betaPost[keep,])
+  return(list(beta = betaPost[keep,],
+         gamma = gammaPost[keep,]))
 }
 
 

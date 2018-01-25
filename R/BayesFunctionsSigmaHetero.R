@@ -31,8 +31,8 @@ BayesSSLemHetero = function(nScans = 20000, burn = 10000, thin = 10,
 
   for (i in 2 : nScans) {
 
-    if (i %% 100 == 0) print(i)
-
+    if (i %% 1000 == 0) print(paste(i, "MCMC scans have finished"))
+    
     D = diag(c(K,tauPost[i-1,]))
     Dinv = diag(1/diag(D))
 
@@ -105,7 +105,6 @@ BayesSSLemHetero = function(nScans = 20000, burn = 10000, thin = 10,
 
       lambda0 = sqrt(2*(p - mean(wut1)) / mean(wut2))
       diff = lambda0 - lambda0Post[i]
-      print(c(lambda0, diff))
       lambda0Post[i] = lambda0
 
     }
@@ -148,8 +147,8 @@ BayesSSLHetero = function(nScans, burn, thin,
 
   for (i in 2 : nScans) {
 
-    if (i %% 100 == 0) print(i)
-
+    if (i %% 1000 == 0) print(paste(i, "MCMC scans have finished"))
+    
     D = diag(c(K,tauPost[i-1,]))
     Dinv = diag(1/diag(D))
 
