@@ -20,4 +20,5 @@ VignetteBuilder: knitr
 Imports: 
     glmnet,
     mvtnorm,
-    statmod
+    statmod,
+    truncnorm

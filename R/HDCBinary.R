@@ -1,4 +1,4 @@
-#' Estimate causal effect allowing for heterogeneous treatment effects
+#' Estimate causal effect allowing for heterogeneous treatment effects and binary outcomes
 #' This function will take in the observed data and estimate a treatment effect. y,x, and z must
 #' all be supplied, though all other parameters have pre-set values the user can proceed with unless
 #' they wish to change the prior specification. We recommend using the EM option to estimate lambda0
@@ -6,7 +6,7 @@
 #' Note, however, that the EM option will take longer as it requires running multiple MCMCs instead
 #' of just one
 #'
-#' @param y              The outcome to be analyzed
+#' @param y              The binary outcome to be analyzed
 #' @param z              The treatment whose causal effect is to be estimated
 #' @param x              An n by p matrix of potential confounders
 #' @param lambda0        Either a numeric value to be used for the value of lambda0
@@ -35,9 +35,9 @@
 #' p = 200
 #' x = matrix(rnorm(n*p), n, p)
 #' z = rbinom(n, 1, p=pnorm(0.5 + 0.7*x[,1] + 0.3*x[,2]))
-#' y = rnorm(n, mean=z + 0.3*x[,1] + 0.6*x[,2] + 0.5*x[,3] + 0.5*z*x[,1], sd=1)
+#' y = rbinom(n, 1, p=pnorm(z + 0.3*x[,1] + 0.6*x[,2] + 0.5*x[,3] + 0.5*z*x[,1], sd=1))
 #' 
-#' ssl = SSLhetero(y=y, z=z, x=x, nScans=3000, burn=1000, thin=2)
+#' ssl = SSLheteroBinary(y=y, z=z, x=x, nScans=3000, burn=1000, thin=2)
 #' ## Output treatment effect and credible interval
 #' print(ssl$TreatEffect)
 #' print(ssl$TreatEffectCI)
@@ -45,9 +45,9 @@
 #' ## Print the posterior inclusion probabilities for confounders
 #' print(ssl$gammaPostMean)
 
-SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
-               y, x, z, lambda1 = 0.1, thetaA = 1, thetaB = 0.2*dim(x)[2],
-               lambda0 = "EM", weight=NULL, kMax=20) {
+SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
+                     y, x, z, lambda1 = 0.1, thetaA = 1, thetaB = 0.2*dim(x)[2],
+                     lambda0 = "EM", weight=NULL, kMax=20) {
   
   n = dim(x)[1]
   p = dim(x)[2]
@@ -65,7 +65,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
     
     print("Running initial empirical Bayes estimates to calculate weights for the treated group")
     
-    EMresults1 = BayesSSLemHetero(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==1],
+    EMresults1 = BayesSSLemHeteroBinary(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==1],
                                   x = x[z==1,], lambda1 = 0.1, lambda0start = 8,
                                   numBlocks = 10, w=w)
     
@@ -90,7 +90,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
     
     print("Now estimating empirical Bayes estimates of Lambda0 conditional on weights for treated group")
     
-    EMresults1.2 = BayesSSLemHetero(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==1],
+    EMresults1.2 = BayesSSLemHeteroBinary(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==1],
                                     x = x[z==1,], lambda1 = 0.1, lambda0start = 8,
                                     numBlocks = 10, w=w)
     
@@ -100,7 +100,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
     
     print("Running main analysis for treated group now")
     
-    MainAnalysisBayes1 = BayesSSLHetero(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==1],
+    MainAnalysisBayes1 = BayesSSLHeteroBinary(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==1],
                                         x = x[z==1,], lambda1 = 0.1, lambda0 = lambda0est1.2,
                                         numBlocks = 10, w=w)
     
@@ -115,7 +115,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
     
     print("Running initial empirical Bayes estimates to calculate weights for the control group")
     
-    EMresults0 = BayesSSLemHetero(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==0],
+    EMresults0 = BayesSSLemHeteroBinary(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==0],
                                   x = x[z==0,], lambda1 = 0.1, lambda0start = 8,
                                   numBlocks = 10, w=w)
     
@@ -140,7 +140,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
     
     print("Now estimating empirical Bayes estimates of Lambda0 conditional on weights for control group")
     
-    EMresults0.2 = BayesSSLemHetero(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==0],
+    EMresults0.2 = BayesSSLemHeteroBinary(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==0],
                                     x = x[z==0,], lambda1 = 0.1, lambda0start = 8,
                                     numBlocks = 10, w=w)
     
@@ -150,7 +150,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
     
     print("Running main analysis for control group now")
     
-    MainAnalysisBayes0 = BayesSSLHetero(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==0],
+    MainAnalysisBayes0 = BayesSSLHeteroBinary(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==0],
                                         x = x[z==0,], lambda1 = 0.1, lambda0 = lambda0est0.2,
                                         numBlocks = 10, w=w)
     
@@ -161,13 +161,10 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
     ####################################################################################
     
     
-    Design = cbind(rep(1,n), x)
-    
-    atePost = rep(NA, dim(MainAnalysisBayes1$beta)[1])
-    
-    for (i in 1 : dim(MainAnalysisBayes1$beta)[1]) {
-      atePost[i] = mean(Design %*% MainAnalysisBayes1$beta[i,] -
-                          Design %*% MainAnalysisBayes0$beta[i,])
+    atePost = rep(NA, dim(MainAnalysisBayes$beta)[1])
+    for (ni in 1 : dim(MainAnalysisBayes$beta)[1]) {
+      atePost[ni] = mean(pnorm(cbind(rep(1,n), rep(1,n), x) %*% MainAnalysisBayes$beta[ni,]) -
+                           pnorm(cbind(rep(1,n), rep(0,n), x) %*% MainAnalysisBayes$beta[ni,]))
     }
   } else {
     
@@ -187,7 +184,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
       
       print("Running main analysis for treated group now")
       
-      MainAnalysisBayes1 = BayesSSLHetero(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==1],
+      MainAnalysisBayes1 = BayesSSLHeteroBinary(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==1],
                                           x = x[z==1,], lambda1 = 0.1, lambda0 = lambda0,
                                           numBlocks = 10, w=w)
       
@@ -199,7 +196,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
       
       print("Running main analysis for control group now")
       
-      MainAnalysisBayes0 = BayesSSLHetero(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==0],
+      MainAnalysisBayes0 = BayesSSLHeteroBinary(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==0],
                                           x = x[z==0,], lambda1 = 0.1, lambda0 = lambda0,
                                           numBlocks = 10, w=w)
       
@@ -209,14 +206,10 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
       ###################### Now combine them to estimate ATE ############################
       ####################################################################################
       
-      
-      Design = cbind(rep(1,n), x)
-      
-      atePost = rep(NA, dim(MainAnalysisBayes1$beta)[1])
-      
-      for (i in 1 : dim(MainAnalysisBayes1)[1]) {
-        atePost[i] = mean(Design %*% MainAnalysisBayes1$beta[i,] -
-                            Design %*% MainAnalysisBayes0$beta[i,])
+      atePost = rep(NA, dim(MainAnalysisBayes$beta)[1])
+      for (ni in 1 : dim(MainAnalysisBayes$beta)[1]) {
+        atePost[ni] = mean(pnorm(cbind(rep(1,n), rep(1,n), x) %*% MainAnalysisBayes1$beta[ni,]) -
+                             pnorm(cbind(rep(1,n), rep(0,n), x) %*% MainAnalysisBayes0$beta[ni,]))
       }
     }
   }
@@ -231,7 +224,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
 
 
 
-#' Estimate causal effect assuming homogeneous treatment effect
+#' Estimate causal effect assuming homogeneous treatment effect and a binary outcome
 #'
 #' This function will take in the observed data and estimate a treatment effect. y,x, and z must
 #' all be supplied, though all other parameters have pre-set values the user can proceed with unless
@@ -272,9 +265,9 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
 #' p = 200
 #' x = matrix(rnorm(n*p), n, p)
 #' z = rbinom(n, 1, p=pnorm(0.7*x[,1] + 0.3*x[,2]))
-#' y = rnorm(n, mean=z + 0.3*x[,1] + 0.6*x[,2] + 0.5*x[,3], sd=1)
+#' y = rbinom(n, 1, p=pnorm(z + 0.3*x[,1] + 0.6*x[,2] + 0.5*x[,3], sd=1))
 #' 
-#' ssl = SSL(y=y, z=z, x=x, nScans=3000, burn=1000, thin=2)
+#' ssl = SSLBinary(y=y, z=z, x=x, nScans=3000, burn=1000, thin=2)
 #' ## Output treatment effect and credible interval
 #' print(ssl$TreatEffect)
 #' print(ssl$TreatEffectCI)
@@ -282,7 +275,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
 #' ## Print the posterior inclusion probabilities for confounders
 #' print(ssl$gammaPostMean)
 
-SSL = function(nScans = 20000, burn = 10000, thin = 10,
+SSLBinary = function(nScans = 20000, burn = 10000, thin = 10,
                y, x, z, lambda1 = 0.1, thetaA = 1, thetaB = 0.2*dim(x)[2],
                lambda0 = "EM", weight=NULL, kMax=20) {
   
@@ -302,7 +295,7 @@ SSL = function(nScans = 20000, burn = 10000, thin = 10,
     
     print("Running initial empirical Bayes estimates to calculate weights")
     
-    EMresults = BayesSSLem(nScans=nScans, burn=burn, thin=thin, n=n, p = ncol(x), y = y,
+    EMresults = BayesSSLemBinary(nScans=nScans, burn=burn, thin=thin, n=n, p = ncol(x), y = y,
                            x = x, z=z, lambda1 = 0.1, lambda0start = 8,
                            numBlocks = 10, w=w)
     
@@ -325,7 +318,7 @@ SSL = function(nScans = 20000, burn = 10000, thin = 10,
     
     print("Now estimating empirical Bayes estimates of Lambda0 conditional on weights")
     
-    EMresults2 = BayesSSLem(nScans=nScans, burn=burn, thin=thin, n=n, p = ncol(x), y = y,
+    EMresults2 = BayesSSLemBinary(nScans=nScans, burn=burn, thin=thin, n=n, p = ncol(x), y = y,
                             x = x, z=z, lambda1 = 0.1, lambda0start = 8,
                             numBlocks = 10, w=w)
     
@@ -335,9 +328,15 @@ SSL = function(nScans = 20000, burn = 10000, thin = 10,
     
     print("Running final analysis now")
     
-    MainAnalysisBayes = BayesSSL(nScans=nScans, burn=burn, thin=thin, n=n, p = ncol(x), y = y, 
+    MainAnalysisBayes = BayesSSLBinary(nScans=nScans, burn=burn, thin=thin, n=n, p = ncol(x), y = y, 
                                  x = x, z=z, lambda1 = 0.1, lambda0 = lambda0est,
                                  numBlocks = 10, w=w)
+    
+    atePost = rep(NA, dim(MainAnalysisBayes$beta)[1])
+    for (ni in 1 : dim(MainAnalysisBayes$beta)[1]) {
+      atePost[ni] = mean(pnorm(cbind(rep(1,n), rep(1,n), x) %*% MainAnalysisBayes$beta[ni,]) -
+        pnorm(cbind(rep(1,n), rep(0,n), x) %*% MainAnalysisBayes$beta[ni,]))
+    }
   } else {
     
     if (is.null(weight)) {
@@ -358,18 +357,20 @@ SSL = function(nScans = 20000, burn = 10000, thin = 10,
       
       print("Running final analysis now")
       
-      MainAnalysisBayes = BayesSSL(nScans=nScans, burn=burn, thin=thin, n=n, p = ncol(x), y = y, 
+      MainAnalysisBayes = BayesSSLBinary(nScans=nScans, burn=burn, thin=thin, n=n, p = ncol(x), y = y, 
                                    x = x, z=z, lambda1 = 0.1, lambda0 = lambda0,
                                    numBlocks = 10, w=w)
+      atePost = rep(NA, dim(MainAnalysisBayes$beta)[1])
+      for (ni in 1 : dim(MainAnalysisBayes$beta)[1]) {
+        atePost[ni] = mean(pnorm(cbind(rep(1,n), rep(1,n), x) %*% MainAnalysisBayes$beta[ni,]) -
+                             pnorm(cbind(rep(1,n), rep(0,n), x) %*% MainAnalysisBayes$beta[ni,]))
+      }
     }
   }
   
-  l = list(TreatEffect = mean(MainAnalysisBayes$beta[,2]),
-           TreatEffectCI = quantile(MainAnalysisBayes$beta[,2], c(.025, .975)),
-           TreatEffectPost = MainAnalysisBayes$beta[,2],
-           betaPostMean = apply(MainAnalysisBayes$beta[,3:(p+2)], 2, mean),
-           betaPostCI = apply(MainAnalysisBayes$beta[,3:(p+2)], 2, quantile, c(.025, .975)),
-           gammaPostMean = apply(MainAnalysisBayes$gamma, 2, mean))
+  l = list(TreatEffect = mean(atePost),
+           TreatEffectCI = quantile(atePost, c(.025, .975)),
+           TreatEffectPost = atePost)
   
   return(l)
 }
