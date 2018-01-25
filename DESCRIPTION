@@ -1,9 +1,23 @@
 Package: HDconfounding
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
+Title: High dimensional confounding adjustment with continuous spike and slab priors
+Version: 0.0.0.9000
+Date: 2018-01-22
+Author: Joseph Antonelli
+Maintainer: Joseph Antonelli <jantonelli111@gmail.com>
+Description: FILL
+License: GPL (>= 2)
 LazyData: TRUE
+URL: https://github.com/jantonelli111/HDconfounding
+BugReports: https://github.com/jantonelli111/HDconfounding/issues
+RoxygenNote: 5.0.1
+Suggests: 
+    ggplot2,
+    knitr,
+    rmarkdown,
+    testthat
+VignetteBuilder: knitr
+Imports: 
+    glmnet,
+    mvtnorm,
+    statmod

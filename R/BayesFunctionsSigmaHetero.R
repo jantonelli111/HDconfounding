@@ -73,7 +73,7 @@ BayesSSLemHetero = function(nScans = 20000, burn = 10000, thin = 10,
       tempY = y - (Design[,-wp] %*% betaPost[i,-wp])
       tempV = sigma2Post[i]*solve((t(Design[,wp]) %*% Design[,wp]) + Dinv[wp,wp])
       tempMU = (1/sigma2Post[i])*tempV %*% t(Design[,wp]) %*% tempY
-      betaPost[i,wp] = rmvnorm(1, mean=tempMU, sigma=tempV)
+      betaPost[i,wp] = mvtnorm::rmvnorm(1, mean=tempMU, sigma=tempV)
     }
 
     ## GAMMA
@@ -94,7 +94,7 @@ BayesSSLemHetero = function(nScans = 20000, burn = 10000, thin = 10,
       tempLambda = gammaPost[i,j]*lambda1 + (1 - gammaPost[i,j])*lambda0Post[i-1]
       lambdaPrime = tempLambda^2
       muPrime = sqrt(tempLambda^2 * sigma2Post[i] / betaPost[i,j+1]^2)
-      tauPost[i,j] = 1 / rinvgauss(1, muPrime, lambdaPrime)
+      tauPost[i,j] = 1 / statmod::rinvgauss(1, muPrime, lambdaPrime)
     }
 
     ## LAMBDA0
@@ -190,7 +190,7 @@ BayesSSLHetero = function(nScans, burn, thin,
       tempY = y - (Design[,-wp] %*% betaPost[i,-wp])
       tempV = sigma2Post[i]*solve((t(Design[,wp]) %*% Design[,wp]) + Dinv[wp,wp])
       tempMU = (1/sigma2Post[i])*tempV %*% t(Design[,wp]) %*% tempY
-      betaPost[i,wp] = rmvnorm(1, mean=tempMU, sigma=tempV)
+      betaPost[i,wp] = mvtnorm::rmvnorm(1, mean=tempMU, sigma=tempV)
     }
 
     ## GAMMA
@@ -211,7 +211,7 @@ BayesSSLHetero = function(nScans, burn, thin,
       tempLambda = gammaPost[i,j]*lambda1 + (1 - gammaPost[i,j])*lambda0
       lambdaPrime = tempLambda^2
       muPrime = sqrt(tempLambda^2 * sigma2Post[i] / betaPost[i,j+1]^2)
-      tauPost[i,j] = 1 / rinvgauss(1, muPrime, lambdaPrime)
+      tauPost[i,j] = 1 / statmod::rinvgauss(1, muPrime, lambdaPrime)
     }
   }
 
