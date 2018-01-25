@@ -12,5 +12,5 @@ library(devtools)
 install_github(repo = "jantonelli111/HDconfounding")
 library(HDconfounding)
 ```
-Currently, the software allows for continuous outcomes only, but we are in the process of adapting it to allow for binary outcomes as well. If you have any questions regarding the software don't hesitate to contact Joseph Antonelli at jantonelli111@gmail.com, and please report any bugs that you find!
+Currently, the software only allows for fully Bayesian inference with MCMC, but we are in the process of writing software that also estimates posterior modes of treatment effects. This will not provide valid measures of uncertainty, but will estimate quantities with much less computation time and will allow for automatic confounder selection as some confounders will have coefficients hard thresholded to zero. If you have any questions regarding the software don't hesitate to contact Joseph Antonelli at jantonelli111@gmail.com, and please report any bugs that you find!
 
