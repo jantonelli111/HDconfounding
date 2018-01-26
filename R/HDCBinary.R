@@ -153,9 +153,9 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
     
     print("Running main analysis for control group now")
     
-    MainAnalysisBayes0 = BayesSSLHeteroBinary(p = ncol(x), y = y[z==0],
+    MainAnalysisBayes0 = BayesSSLHeteroBinary(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==0],
                                         x = x[z==0,], lambda1 = 0.1, lambda0 = lambda0est0.2,
-                                        numBlocks = 10, w=w, EMiterMax = EMiterMax)
+                                        numBlocks = 10, w=w)
     
     
     
