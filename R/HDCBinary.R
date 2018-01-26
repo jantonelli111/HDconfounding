@@ -1,4 +1,5 @@
 #' Estimate causal effect allowing for heterogeneous treatment effects and binary outcomes
+#' 
 #' This function will take in the observed data and estimate a treatment effect. y,x, and z must
 #' all be supplied, though all other parameters have pre-set values the user can proceed with unless
 #' they wish to change the prior specification. We recommend using the EM option to estimate lambda0
@@ -34,19 +35,19 @@
 #' @export
 #' @examples
 #'
+#' ## p can be larger than n, but we keep the number of covariates small here
+#' ## just for illustration so that the code will finish faster
+#' ## n=200 and p=200 takes ~5 minutes to run for example
 #' n = 200
-#' p = 200
+#' p = 20
 #' x = matrix(rnorm(n*p), n, p)
 #' z = rbinom(n, 1, p=pnorm(0.5 + 0.7*x[,1] + 0.3*x[,2]))
-#' y = rbinom(n, 1, p=pnorm(z + 0.3*x[,1] + 0.6*x[,2] + 0.5*x[,3] + 0.5*z*x[,1], sd=1))
+#' y = rbinom(n, 1, p=pnorm(z + 0.3*x[,1] + 0.6*x[,2] + 0.5*x[,3] + 0.5*z*x[,1]))
 #' 
 #' ssl = SSLheteroBinary(y=y, z=z, x=x, nScans=3000, burn=1000, thin=2)
 #' ## Output treatment effect and credible interval
 #' print(ssl$TreatEffect)
 #' print(ssl$TreatEffectCI)
-#' 
-#' ## Print the posterior inclusion probabilities for confounders
-#' print(ssl$gammaPostMean)
 
 SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
                      y, x, z, lambda1 = 0.1, thetaA = 1, thetaB = 0.2*dim(x)[2],
@@ -268,11 +269,14 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
 #' @export
 #' @examples
 #'
+#' ## p can be larger than n, but we keep the number of covariates small here
+#' ## just for illustration so that the code will finish faster
+#' ## n=200 and p=200 takes ~5 minutes to run for example
 #' n = 200
-#' p = 200
+#' p = 20
 #' x = matrix(rnorm(n*p), n, p)
 #' z = rbinom(n, 1, p=pnorm(0.7*x[,1] + 0.3*x[,2]))
-#' y = rbinom(n, 1, p=pnorm(z + 0.3*x[,1] + 0.6*x[,2] + 0.5*x[,3], sd=1))
+#' y = rbinom(n, 1, p=pnorm(z + 0.3*x[,1] + 0.6*x[,2] + 0.5*x[,3]))
 #' 
 #' ssl = SSLBinary(y=y, z=z, x=x, nScans=3000, burn=1000, thin=2)
 #' ## Output treatment effect and credible interval

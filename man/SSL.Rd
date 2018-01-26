@@ -51,7 +51,8 @@ An list of values that contain the treatment effect, confidence interval for the
         important.
 }
 \description{
-This function will take in the observed data and estimate a treatment effect. y,x, and z must
+This function will take in the observed data and estimate a treatment effect assuming a 
+homogeneous treatment effect. y,x, and z must
 all be supplied, though all other parameters have pre-set values the user can proceed with unless
 they wish to change the prior specification. We recommend using the EM option to estimate lambda0
 as results can be very sensitive to this parameter and choosing it a-priori is a difficult task.
@@ -60,8 +61,11 @@ of just one
 }
 \examples{
 
+## p can be larger than n, but we keep the number of covariates small here
+## just for illustration so that the code will finish faster
+## n=200 and p=200 takes ~5 minutes to run for example
 n = 200
-p = 200
+p = 20
 x = matrix(rnorm(n*p), n, p)
 z = rbinom(n, 1, p=pnorm(0.7*x[,1] + 0.3*x[,2]))
 y = rnorm(n, mean=z + 0.3*x[,1] + 0.6*x[,2] + 0.5*x[,3], sd=1)

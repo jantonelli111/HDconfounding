@@ -60,11 +60,14 @@ of just one
 }
 \examples{
 
+## p can be larger than n, but we keep the number of covariates small here
+## just for illustration so that the code will finish faster
+## n=200 and p=200 takes ~5 minutes to run for example
 n = 200
-p = 200
+p = 20
 x = matrix(rnorm(n*p), n, p)
 z = rbinom(n, 1, p=pnorm(0.7*x[,1] + 0.3*x[,2]))
-y = rbinom(n, 1, p=pnorm(z + 0.3*x[,1] + 0.6*x[,2] + 0.5*x[,3], sd=1))
+y = rbinom(n, 1, p=pnorm(z + 0.3*x[,1] + 0.6*x[,2] + 0.5*x[,3]))
 
 ssl = SSLBinary(y=y, z=z, x=x, nScans=3000, burn=1000, thin=2)
 ## Output treatment effect and credible interval
