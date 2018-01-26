@@ -2,9 +2,9 @@ BayesSSLemBinary = function(n, p, y, x, z, lambda1 = 0.1,
                             lambda0start = 20, numBlocks = 10, w,
                             thetaA = 1, thetaB = .2*p, EMiterMax=300) {
   
-  EMiterMax = max(11, EMiterMax)
+  EMiterMax = max(20, EMiterMax)
   
-  nScans = EMiterMax*51
+  nScans = EMiterMax*60
   
   betaPost = matrix(NA, nScans, p+2)
   gammaPost = matrix(NA, nScans, p)

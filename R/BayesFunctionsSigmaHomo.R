@@ -3,9 +3,9 @@ BayesSSLem = function(n, p, y, x, z, lambda1 = 0.1,
                       thetaA = 1, thetaB = .2*p, EMiterMax=300) {
   
   ## ensure that this parameter is greater than 10
-  EMiterMax = max(11, EMiterMax)
+  EMiterMax = max(20, EMiterMax)
   
-  nScans = EMiterMax*51
+  nScans = EMiterMax*60
   
   betaPost = matrix(NA, nScans, p+2)
   gammaPost = matrix(NA, nScans, p)
