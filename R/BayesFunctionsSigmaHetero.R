@@ -1,8 +1,12 @@
-BayesSSLemHetero = function(nScans = 20000, burn = 10000, thin = 10,
-                      p, y, x, lambda1 = 0.1,
-                      lambda0start = 20, numBlocks = 10, w,
-                      thetaA = 1, thetaB = .2*p) {
+BayesSSLemHetero = function(p, y, x, z, lambda1 = 0.1, 
+                            lambda0start = 20, numBlocks = 10, w,
+                            thetaA = 1, thetaB = .2*p, EMiterMax=300) {
 
+  ## ensure that this parameter is greater than 10
+  EMiterMax = max(11, EMiterMax)
+  
+  nScans = EMiterMax*51
+  
   n = length(y)
 
   betaPost = matrix(NA, nScans, p+1)
@@ -23,13 +27,19 @@ BayesSSLemHetero = function(nScans = 20000, burn = 10000, thin = 10,
   lambda0 = lambda0start
   lambda0Post[1] = lambda0
 
+  diffCounter = c()
+  
   K = 10000
-
+  
   Design = as.matrix(cbind(rep(1, n), x))
-
+  
   accTheta = 0
+  
+  i = 2
+  EMconverge = FALSE
+  counter = 1
 
-  for (i in 2 : nScans) {
+  while (counter < EMiterMax & EMconverge == FALSE) {
 
     if (i %% 1000 == 0) print(paste(i, "MCMC scans have finished"))
     
@@ -99,20 +109,28 @@ BayesSSLemHetero = function(nScans = 20000, burn = 10000, thin = 10,
 
     ## LAMBDA0
     lambda0Post[i] =  lambda0
-    if (i %% 50 == 0 & i > 500) {
+    if (i %% 50 == 0 & i > 200) {
       wut1 = apply(gammaPost[(i-49):i, ], 1, sum)
       wut2 = sum(apply(tauPost[(i-49):i,] * (gammaPost[(i-49):i, ] == 0), 2, mean))
-
+      
       lambda0 = sqrt(2*(p - mean(wut1)) / mean(wut2))
       diff = lambda0 - lambda0Post[i]
       lambda0Post[i] = lambda0
-
+      diffCounter = c(diffCounter, lambda0)
+      counter = counter + 1
+      
+      ## test if it has converged yet. Only test after 10 iterations
+      if (counter > 10) {
+        lD = length(diffCounter)
+        mainSign = sign(diffCounter[lD] - diffCounter[1])
+        if (sign(diffCounter[lD] - diffCounter[lD-5]) != mainSign) EMconverge = TRUE 
+      }
     }
+    i = i + 1
   }
 
-  keep = seq((burn + 1), nScans, by=thin)
-  return(list(lambda0est = mean(lambda0Post[keep], na.rm=TRUE),
-              thetaEst = mean(thetaPost[keep])))
+  return(list(lambda0est = lambda0,
+              thetaEst = thetaPost[i-1]))
 }
 
 

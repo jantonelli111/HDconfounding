@@ -23,7 +23,10 @@
 #'                       parameter has a default of NULL, and should only be used when lambdo0
 #'                       is provided instead of estimated using empirical Bayes
 #' @param kMax           The maximum number of covariates to be prioritized due to association with treatment
-#'                    
+#' @param EMiterMax      The maximum number of iterations to update EM algorithm. The algorithm is updated and
+#'                       checked for convergence every 50th MCMC scan. We recommend a high value such as 300 or
+#'                       500 for this parameter to ensure convergence, though the program will stop well short
+#'                       of 300 in most applications if it has converged.                    
 #'
 #' @return An list of values that contain the treatment effect, confidence interval for the 
 #'         treatment effect, and full posterior draws for the treatment effect.
@@ -47,7 +50,7 @@
 
 SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
                      y, x, z, lambda1 = 0.1, thetaA = 1, thetaB = 0.2*dim(x)[2],
-                     lambda0 = "EM", weight=NULL, kMax=20) {
+                     lambda0 = "EM", weight=NULL, kMax=20, EMiterMax=300) {
   
   n = dim(x)[1]
   p = dim(x)[2]
@@ -65,9 +68,9 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
     
     print("Running initial empirical Bayes estimates to calculate weights for the treated group")
     
-    EMresults1 = BayesSSLemHeteroBinary(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==1],
+    EMresults1 = BayesSSLemHeteroBinary(p = ncol(x), y = y[z==1],
                                   x = x[z==1,], lambda1 = 0.1, lambda0start = 8,
-                                  numBlocks = 10, w=w)
+                                  numBlocks = 10, w=w, EMiterMax = EMiterMax)
     
     
     thetaEst1 = EMresults1$thetaEst
@@ -90,9 +93,9 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
     
     print("Now estimating empirical Bayes estimates of Lambda0 conditional on weights for treated group")
     
-    EMresults1.2 = BayesSSLemHeteroBinary(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==1],
+    EMresults1.2 = BayesSSLemHeteroBinary(p = ncol(x), y = y[z==1],
                                     x = x[z==1,], lambda1 = 0.1, lambda0start = 8,
-                                    numBlocks = 10, w=w)
+                                    numBlocks = 10, w=w, EMiterMax = EMiterMax)
     
     lambda0est1.2 = EMresults1.2$lambda0est
     
@@ -115,9 +118,9 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
     
     print("Running initial empirical Bayes estimates to calculate weights for the control group")
     
-    EMresults0 = BayesSSLemHeteroBinary(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==0],
+    EMresults0 = BayesSSLemHeteroBinary(p = ncol(x), y = y[z==0],
                                   x = x[z==0,], lambda1 = 0.1, lambda0start = 8,
-                                  numBlocks = 10, w=w)
+                                  numBlocks = 10, w=w, EMiterMax = EMiterMax)
     
     
     thetaEst0 = EMresults0$thetaEst
@@ -140,9 +143,9 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
     
     print("Now estimating empirical Bayes estimates of Lambda0 conditional on weights for control group")
     
-    EMresults0.2 = BayesSSLemHeteroBinary(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==0],
+    EMresults0.2 = BayesSSLemHeteroBinary(p = ncol(x), y = y[z==0],
                                     x = x[z==0,], lambda1 = 0.1, lambda0start = 8,
-                                    numBlocks = 10, w=w)
+                                    numBlocks = 10, w=w, EMiterMax = EMiterMax)
     
     lambda0est0.2 = EMresults0.2$lambda0est
     
@@ -150,9 +153,9 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
     
     print("Running main analysis for control group now")
     
-    MainAnalysisBayes0 = BayesSSLHeteroBinary(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==0],
+    MainAnalysisBayes0 = BayesSSLHeteroBinary(p = ncol(x), y = y[z==0],
                                         x = x[z==0,], lambda1 = 0.1, lambda0 = lambda0est0.2,
-                                        numBlocks = 10, w=w)
+                                        numBlocks = 10, w=w, EMiterMax = EMiterMax)
     
     
     
@@ -250,6 +253,10 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
 #'                       parameter has a default of NULL, and should only be used when lambdo0
 #'                       is provided instead of estimated using empirical Bayes
 #' @param kMax           The maximum number of covariates to be prioritized due to association with treatment
+#' @param EMiterMax      The maximum number of iterations to update EM algorithm. The algorithm is updated and
+#'                       checked for convergence every 50th MCMC scan. We recommend a high value such as 300 or
+#'                       500 for this parameter to ensure convergence, though the program will stop well short
+#'                       of 300 in most applications if it has converged.
 #'                    
 #'
 #' @return An list of values that contain the treatment effect, confidence interval for the 
@@ -277,7 +284,7 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
 
 SSLBinary = function(nScans = 20000, burn = 10000, thin = 10,
                y, x, z, lambda1 = 0.1, thetaA = 1, thetaB = 0.2*dim(x)[2],
-               lambda0 = "EM", weight=NULL, kMax=20) {
+               lambda0 = "EM", weight=NULL, kMax=20, EMiterMax=300) {
   
   n = dim(x)[1]
   p = dim(x)[2]
@@ -295,9 +302,9 @@ SSLBinary = function(nScans = 20000, burn = 10000, thin = 10,
     
     print("Running initial empirical Bayes estimates to calculate weights")
     
-    EMresults = BayesSSLemBinary(nScans=nScans, burn=burn, thin=thin, n=n, p = ncol(x), y = y,
-                           x = x, z=z, lambda1 = 0.1, lambda0start = 8,
-                           numBlocks = 10, w=w)
+    EMresults = BayesSSLemBinary(n=n, p = ncol(x), y = y,
+                                 x = x, z=z, lambda1 = 0.1, lambda0start = 8,
+                                 numBlocks = 10, w=w, EMiterMax = EMiterMax)
     
     thetaEst = EMresults$thetaEst
     lambda0est = EMresults$lambda0est
@@ -318,9 +325,9 @@ SSLBinary = function(nScans = 20000, burn = 10000, thin = 10,
     
     print("Now estimating empirical Bayes estimates of Lambda0 conditional on weights")
     
-    EMresults2 = BayesSSLemBinary(nScans=nScans, burn=burn, thin=thin, n=n, p = ncol(x), y = y,
-                            x = x, z=z, lambda1 = 0.1, lambda0start = 8,
-                            numBlocks = 10, w=w)
+    EMresults2 = BayesSSLemBinary(n=n, p = ncol(x), y = y,
+                                  x = x, z=z, lambda1 = 0.1, lambda0start = 8,
+                                  numBlocks = 10, w=w, EMiterMax = EMiterMax)
     
     lambda0est = EMresults2$lambda0est
     
