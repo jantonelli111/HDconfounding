@@ -161,10 +161,10 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
     ####################################################################################
     
     
-    atePost = rep(NA, dim(MainAnalysisBayes$beta)[1])
-    for (ni in 1 : dim(MainAnalysisBayes$beta)[1]) {
-      atePost[ni] = mean(pnorm(cbind(rep(1,n), rep(1,n), x) %*% MainAnalysisBayes$beta[ni,]) -
-                           pnorm(cbind(rep(1,n), rep(0,n), x) %*% MainAnalysisBayes$beta[ni,]))
+    atePost = rep(NA, dim(MainAnalysisBayes1$beta)[1])
+    for (ni in 1 : dim(MainAnalysisBayes1$beta)[1]) {
+      atePost[ni] = mean(pnorm(cbind(rep(1,n), x) %*% MainAnalysisBayes1$beta[ni,]) -
+                           pnorm(cbind(rep(1,n), x) %*% MainAnalysisBayes0$beta[ni,]))
     }
   } else {
     
@@ -206,10 +206,10 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
       ###################### Now combine them to estimate ATE ############################
       ####################################################################################
       
-      atePost = rep(NA, dim(MainAnalysisBayes$beta)[1])
-      for (ni in 1 : dim(MainAnalysisBayes$beta)[1]) {
-        atePost[ni] = mean(pnorm(cbind(rep(1,n), rep(1,n), x) %*% MainAnalysisBayes1$beta[ni,]) -
-                             pnorm(cbind(rep(1,n), rep(0,n), x) %*% MainAnalysisBayes0$beta[ni,]))
+      atePost = rep(NA, dim(MainAnalysisBayes1$beta)[1])
+      for (ni in 1 : dim(MainAnalysisBayes1$beta)[1]) {
+        atePost[ni] = mean(pnorm(cbind(rep(1,n), x) %*% MainAnalysisBayes1$beta[ni,]) -
+                             pnorm(cbind(rep(1,n), x) %*% MainAnalysisBayes0$beta[ni,]))
       }
     }
   }

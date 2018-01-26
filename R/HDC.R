@@ -214,7 +214,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
       
       atePost = rep(NA, dim(MainAnalysisBayes1$beta)[1])
       
-      for (i in 1 : dim(MainAnalysisBayes1)[1]) {
+      for (i in 1 : dim(MainAnalysisBayes1$beta)[1]) {
         atePost[i] = mean(Design %*% MainAnalysisBayes1$beta[i,] -
                             Design %*% MainAnalysisBayes0$beta[i,])
       }

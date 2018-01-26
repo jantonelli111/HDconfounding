@@ -215,7 +215,7 @@ BayesSSLHetero = function(nScans, burn, thin,
   }
 
   keep = seq((burn + 1), nScans, by=thin)
-  return(betaPost[keep,])
+  return(list(beta=betaPost[keep,]))
 }
 
 

@@ -1,4 +1,4 @@
-BayesSSLemHetero = function(nScans = 20000, burn = 10000, thin = 10,
+BayesSSLemHeteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
                             p, y, x, lambda1 = 0.1,
                             lambda0start = 20, numBlocks = 10, w,
                             thetaA = 1, thetaB = .2*p) {
@@ -33,13 +33,20 @@ BayesSSLemHetero = function(nScans = 20000, burn = 10000, thin = 10,
     
     if (i %% 1000 == 0) print(paste(i, "MCMC scans have finished"))
     
+    ## latent continuous gibbs step
+    Zy = rep(NA, n)
+    
+    meanZy = Design %*% betaPost[i-1,]
+    
+    Zy[y==1] = truncnorm::rtruncnorm(sum(y==1), a=0, mean = meanZy[y==1], sd=1)
+    Zy[y==0] = truncnorm::rtruncnorm(sum(y==0), b=0, mean = meanZy[y==0], sd=1)
+    
     D = diag(c(K,tauPost[i-1,]))
     Dinv = diag(1/diag(D))
     
     ## SIGMA^2
-    SS = sum((y - Design %*% betaPost[i-1,])^2)
-    sigma2Post[i] = 1/rgamma(1, (n-1)/2 + p/2,
-                             SS/2 + t(betaPost[i-1,]) %*% Dinv %*% betaPost[i-1,]/2)
+    SS = sum((Zy - Design %*% betaPost[i-1,])^2)
+    sigma2Post[i] = 1
     
     ## THETA using MH update
     BoundaryLow2 = max(0, thetaPost[i-1] - 0.02)
@@ -70,7 +77,7 @@ BayesSSLemHetero = function(nScans = 20000, burn = 10000, thin = 10,
         wp = ((jj-1)*jumps + 1) : (p+1)
       }
       
-      tempY = y - (Design[,-wp] %*% betaPost[i,-wp])
+      tempY = Zy - (Design[,-wp] %*% betaPost[i,-wp])
       tempV = sigma2Post[i]*solve((t(Design[,wp]) %*% Design[,wp]) + Dinv[wp,wp])
       tempMU = (1/sigma2Post[i])*tempV %*% t(Design[,wp]) %*% tempY
       betaPost[i,wp] = mvtnorm::rmvnorm(1, mean=tempMU, sigma=tempV)
@@ -116,7 +123,7 @@ BayesSSLemHetero = function(nScans = 20000, burn = 10000, thin = 10,
 }
 
 
-BayesSSLHetero = function(nScans, burn, thin,
+BayesSSLHeteroBinary = function(nScans, burn, thin,
                           p, y, x, lambda1 = 0.1, lambda0,
                           numBlocks = 10, w, thetaA = 1, thetaB = .2*p) {
   
@@ -149,13 +156,20 @@ BayesSSLHetero = function(nScans, burn, thin,
     
     if (i %% 1000 == 0) print(paste(i, "MCMC scans have finished"))
     
+    ## latent continuous gibbs step
+    Zy = rep(NA, n)
+    
+    meanZy = Design %*% betaPost[i-1,]
+    
+    Zy[y==1] = truncnorm::rtruncnorm(sum(y==1), a=0, mean = meanZy[y==1], sd=1)
+    Zy[y==0] = truncnorm::rtruncnorm(sum(y==0), b=0, mean = meanZy[y==0], sd=1)
+    
     D = diag(c(K,tauPost[i-1,]))
     Dinv = diag(1/diag(D))
     
     ## SIGMA^2
-    SS = sum((y - Design %*% betaPost[i-1,])^2)
-    sigma2Post[i] = 1/rgamma(1, (n-1)/2 + p/2,
-                             SS/2 + t(betaPost[i-1,]) %*% Dinv %*% betaPost[i-1,]/2)
+    SS = sum((Zy - Design %*% betaPost[i-1,])^2)
+    sigma2Post[i] = 1
     
     ## THETA using MH update
     BoundaryLow2 = max(0, thetaPost[i-1] - 0.02)
@@ -186,7 +200,7 @@ BayesSSLHetero = function(nScans, burn, thin,
         wp = ((jj-1)*jumps + 1) : (p+1)
       }
       
-      tempY = y - (Design[,-wp] %*% betaPost[i,-wp])
+      tempY = Zy - (Design[,-wp] %*% betaPost[i,-wp])
       tempV = sigma2Post[i]*solve((t(Design[,wp]) %*% Design[,wp]) + Dinv[wp,wp])
       tempMU = (1/sigma2Post[i])*tempV %*% t(Design[,wp]) %*% tempY
       betaPost[i,wp] = mvtnorm::rmvnorm(1, mean=tempMU, sigma=tempV)
@@ -215,7 +229,7 @@ BayesSSLHetero = function(nScans, burn, thin,
   }
   
   keep = seq((burn + 1), nScans, by=thin)
-  return(betaPost[keep,])
+  return(list(beta = betaPost[keep,]))
 }
 
 
