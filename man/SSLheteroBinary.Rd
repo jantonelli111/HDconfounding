@@ -5,8 +5,8 @@
 \title{Estimate causal effect allowing for heterogeneous treatment effects and binary outcomes}
 \usage{
 SSLheteroBinary(nScans = 20000, burn = 10000, thin = 10, y, x, z,
-  lambda1 = 0.1, thetaA = 1, thetaB = 0.2 * dim(x)[2], lambda0 = "EM",
-  weight = NULL, kMax = 20, EMiterMax = 300)
+  lambda1 = 0.1, thetaA = 1, thetaB = 0.2 * dim(x)[2], lambda0 = "EB",
+  weight = NULL, kMax = 20, EBiterMax = 300)
 }
 \arguments{
 \item{nScans}{The number of MCMC scans to run}
@@ -29,7 +29,7 @@ that is kept}
 \item{thetaB}{The second parameter of the beta prior on the overall sparsity level}
 
 \item{lambda0}{Either a numeric value to be used for the value of lambda0
-or "EM" is specified to indicate that it will be estimated
+or "EB" is specified to indicate that it will be estimated
 via empirical Bayes}
 
 \item{weight}{The weight used to prioritize variables associated with treatment. This
@@ -38,7 +38,7 @@ is provided instead of estimated using empirical Bayes}
 
 \item{kMax}{The maximum number of covariates to be prioritized due to association with treatment}
 
-\item{EMiterMax}{The maximum number of iterations to update EM algorithm. The algorithm is updated and
+\item{EBiterMax}{The maximum number of iterations to update empirical Bayes algorithm. The algorithm is updated and
 checked for convergence every 50th MCMC scan. We recommend a high value such as 300 or
 500 for this parameter to ensure convergence, though the program will stop well short
 of 300 in most applications if it has converged.}
@@ -50,9 +50,9 @@ An list of values that contain the treatment effect, confidence interval for the
 \description{
 This function will take in the observed data and estimate a treatment effect. y,x, and z must
 all be supplied, though all other parameters have pre-set values the user can proceed with unless
-they wish to change the prior specification. We recommend using the EM option to estimate lambda0
+they wish to change the prior specification. We recommend using the EB option to estimate lambda0
 as results can be very sensitive to this parameter and choosing it a-priori is a difficult task.
-Note, however, that the EM option will take longer as it requires running multiple MCMCs instead
+Note, however, that the EB option will take longer as it requires running multiple MCMCs instead
 of just one
 }
 \examples{

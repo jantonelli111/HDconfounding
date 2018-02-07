@@ -16,50 +16,91 @@ knitr::opts_chunk$set(
 )
 ```
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
+In this vignette we will show you how to use the main functions of the HDconfounding R package. We will simulate data under both a binary and continuous outcome and show how to analyze them using the various functions in the package. For the sake of building the vignette, we will use a relatively small number of covariates throughout (p=20), however, the methods extend to high-dimensional data. We simply restrict to a lower dimensional case here because the code needs to run each time a new user wants to build the vignette, and the functions used are no different for high-dimensional (p > n) data.
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
+### Loading and building the package
 
-## Vignette Info
+To build the package the user must install the devtools R package and then run the following code.
 
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
 
-## Styles
-
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+```{r, echo=TRUE, message=FALSE}
+#library(devtools)
+#install_github(repo = "jantonelli111/HDconfounding")
+#library(HDconfounding)
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+If the user wishes to build the vignette (which will take a few more seconds to build), then the following code can be run.
 
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
 
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+```{r, echo=TRUE, message=FALSE}
+#library(devtools)
+#install_github(repo = "jantonelli111/HDconfounding", build_vignettes = TRUE)
+library(HDconfounding)
 ```
 
-Also a quote using `>`:
+And to see the vignette the user can type the following into R. Note that the vignette is also available on the github repository github.com/jantonelli111/HDconfounding, which won't require building the vignette.
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+```{r, echo=TRUE, message=FALSE, eval=FALSE}
+#vignette("HDconfounding", package="HDconfounding")
+```
+
+### What this package can and can't be used for
+
+The software in this package is intended to estimate causal effects with a large (potentially larger than the sample size) covariate space. The types of data that can be addressed in this package are continuous and binary outcomes, as well as binary or continuous treatments. Our software can estimate causal effects assuming either a homogeneous or heterogeneous treatment effect. It is important to note, however, that the current software only allows for heterogeneous treatment effects when the exposure/treatment is binary. If the treatment is continuous then the homogeneous versions of the codes should be used. For the sake of this vignette, we will mostly restrict to binary treatments, though the use of continuous treatments is exactly the same, except the heterogeneous functions should not be used.
+
+### Continuous outcome, homogeneous treatment effect
+
+First let's generate some data to practice estimating treatment effects with:
+
+```{r}
+n = 200
+p = 20
+x = matrix(rnorm(n*p), n, p)
+z = rbinom(n, 1, p=pnorm(0.7*x[,1] + 0.3*x[,2]))
+y = rnorm(n, mean=z + 0.3*x[,1] + 0.6*x[,2] + 0.5*x[,3], sd=1)
+```
+
+So our sample size is 200, we have 20 covariates, the first 2 covariates are important for confounding adjustment, and the 3rd covariate is a predictor of the outcome. In this case, the treatment effect is homogeneous, i.e does not vary for different values of the covariates. We will now estimate it using both the homogeneous and heterogeneous versions of our approach. Both should yield unbiased answers in this setting, though we expect the heterogeneous approach to be slightly less efficient as it is a more complex model with more parameters.
+
+First, to estimate the homogeneous treatment effect we can run the following
+
+```{r}
+sslEB = SSL(y=y, z=z, x=x, nScans=3000, burn=1000, thin=2, lambda0="EB")
+```
+
+This model estimates the tuning parameter $\lambda_0$ with empirical Bayes. We recommend this as it is difficult to have prior knowledge about what value this parameter should take. If the user wants to specify their own value of $\lambda_0$, then weight must also be provided (w in the main manuscript) and we recommend a value of 0.01.
+
+```{r, eval=FALSE}
+ssl = SSL(y=y, z=z, x=x, nScans=3000, burn=1000, thin=2, lambda0=15, weight = 0.01)
+```
+
+The empirical Bayes estimate is calculated using MCMC so the running time is a little longer than pre-selecting $\lambda_0$, which is one reason one might want to choose their own value if they have a large data set. It is important to note though that a poorly chosen value of $\lambda_0$ can lead to poor estimation so we highly recommend the EB option. Let's look at the results on the treatment effect:
+
+```{r}
+sslEB$TreatEffect
+sslEB$TreatEffectCI
+```
+
+There are other things one can pull from the results of this analysis. We can look at the posterior inclusion probabilities of the covariates:
+
+```{r}
+sslEB$gammaPostMean
+```
+
+And we see that the first three covariates are included in the slab component of the prior as expected. 
+
+### Continuous outcome, heterogeneous treatment effect
+
+Now let's analyze the same data, but allowing for heterogeneous treatment effects. 
+
+```{r}
+sslEBhetero = SSLhetero(y=y, z=z, x=x, nScans=3000, burn=1000, thin=2, lambda0="EB")
+```
+
+And look at the results:
+
+```{r}
+sslEBhetero$TreatEffect
+sslEBhetero$TreatEffectCI
+```
+

@@ -3,16 +3,16 @@
 #' This function will take in the observed data and estimate a treatment effect allowing for 
 #' heterogeneous treatment effects. y,x, and z must
 #' all be supplied, though all other parameters have pre-set values the user can proceed with unless
-#' they wish to change the prior specification. We recommend using the EM option to estimate lambda0
+#' they wish to change the prior specification. We recommend using the EB option to estimate lambda0
 #' as results can be very sensitive to this parameter and choosing it a-priori is a difficult task.
-#' Note, however, that the EM option will take longer as it requires running multiple MCMCs instead
+#' Note, however, that the EB option will take longer as it requires running multiple MCMCs instead
 #' of just one
 #'
 #' @param y              The outcome to be analyzed
 #' @param z              The treatment whose causal effect is to be estimated
 #' @param x              An n by p matrix of potential confounders
 #' @param lambda0        Either a numeric value to be used for the value of lambda0
-#'                       or "EM" is specified to indicate that it will be estimated
+#'                       or "EB" is specified to indicate that it will be estimated
 #'                       via empirical Bayes
 #' @param lambda1        A numeric value for lambda1
 #' @param nScans         The number of MCMC scans to run
@@ -25,7 +25,7 @@
 #'                       parameter has a default of NULL, and should only be used when lambdo0
 #'                       is provided instead of estimated using empirical Bayes
 #' @param kMax           The maximum number of covariates to be prioritized due to association with treatment
-#' @param EMiterMax      The maximum number of iterations to update EM algorithm. The algorithm is updated and
+#' @param EBiterMax      The maximum number of iterations to update EB algorithm. The algorithm is updated and
 #'                       checked for convergence every 50th MCMC scan. We recommend a high value such as 300 or
 #'                       500 for this parameter to ensure convergence, though the program will stop well short
 #'                       of 300 in most applications if it has converged.
@@ -54,7 +54,7 @@
 
 SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
                y, x, z, lambda1 = 0.1, thetaA = 1, thetaB = 0.2*dim(x)[2],
-               lambda0 = "EM", weight=NULL, kMax=20, EMiterMax = 300) {
+               lambda0 = "EB", weight=NULL, kMax=20, EBiterMax = 300) {
   
   n = dim(x)[1]
   p = dim(x)[2]
@@ -67,18 +67,18 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
                      decreasing=TRUE)[1 : kMax]
   }
   
-  if (lambda0 == "EM") {
+  if (lambda0 == "EB") {
     w = rep(1,p)
     
     print("Running initial empirical Bayes estimates to calculate weights for the treated group")
     
-    EMresults1 = BayesSSLemHetero(p = ncol(x), y = y[z==1],
+    EBresults1 = BayesSSLemHetero(p = ncol(x), y = y[z==1],
                                   x = x[z==1,], lambda1 = 0.1, lambda0start = 8,
-                                  numBlocks = 10, w=w, EMiterMax = EMiterMax)
+                                  numBlocks = 10, w=w, EBiterMax = EBiterMax)
     
     
-    thetaEst1 = EMresults1$thetaEst
-    lambda0est1 = EMresults1$lambda0est
+    thetaEst1 = EBresults1$thetaEst
+    lambda0est1 = EBresults1$lambda0est
     wj_vec = seq(0, 1, length=2000)
     
     wj_final1 = wj_vec[which(pStar(beta=0, thetaEst1^wj_vec,
@@ -97,11 +97,11 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
     
     print("Now estimating empirical Bayes estimates of Lambda0 conditional on weights for treated group")
     
-    EMresults1.2 = BayesSSLemHetero(p = ncol(x), y = y[z==1],
+    EBresults1.2 = BayesSSLemHetero(p = ncol(x), y = y[z==1],
                                     x = x[z==1,], lambda1 = 0.1, lambda0start = 8,
-                                    numBlocks = 10, w=w, EMiterMax = EMiterMax)
+                                    numBlocks = 10, w=w, EBiterMax = EBiterMax)
     
-    lambda0est1.2 = EMresults1.2$lambda0est
+    lambda0est1.2 = EBresults1.2$lambda0est
     
     ## Now do final analysis
     
@@ -122,13 +122,13 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
     
     print("Running initial empirical Bayes estimates to calculate weights for the control group")
     
-    EMresults0 = BayesSSLemHetero(p = ncol(x), y = y[z==0],
+    EBresults0 = BayesSSLemHetero(p = ncol(x), y = y[z==0],
                                   x = x[z==0,], lambda1 = 0.1, lambda0start = 8,
-                                  numBlocks = 10, w=w, EMiterMax = EMiterMax)
+                                  numBlocks = 10, w=w, EBiterMax = EBiterMax)
     
     
-    thetaEst0 = EMresults0$thetaEst
-    lambda0est0 = EMresults0$lambda0est
+    thetaEst0 = EBresults0$thetaEst
+    lambda0est0 = EBresults0$lambda0est
     wj_vec = seq(0, 1, length=2000)
     
     wj_final0 = wj_vec[which(pStar(beta=0, thetaEst0^wj_vec,
@@ -147,11 +147,11 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
     
     print("Now estimating empirical Bayes estimates of Lambda0 conditional on weights for control group")
     
-    EMresults0.2 = BayesSSLemHetero(p = ncol(x), y = y[z==0],
+    EBresults0.2 = BayesSSLemHetero(p = ncol(x), y = y[z==0],
                                     x = x[z==0,], lambda1 = 0.1, lambda0start = 8,
-                                    numBlocks = 10, w=w, EMiterMax = EMiterMax)
+                                    numBlocks = 10, w=w, EBiterMax = EBiterMax)
     
-    lambda0est0.2 = EMresults0.2$lambda0est
+    lambda0est0.2 = EBresults0.2$lambda0est
     
     ## Now do final analysis
     
@@ -243,16 +243,16 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
 #' This function will take in the observed data and estimate a treatment effect assuming a 
 #' homogeneous treatment effect. y,x, and z must
 #' all be supplied, though all other parameters have pre-set values the user can proceed with unless
-#' they wish to change the prior specification. We recommend using the EM option to estimate lambda0
+#' they wish to change the prior specification. We recommend using the EB option to estimate lambda0
 #' as results can be very sensitive to this parameter and choosing it a-priori is a difficult task.
-#' Note, however, that the EM option will take longer as it requires running multiple MCMCs instead
+#' Note, however, that the EB option will take longer as it requires running multiple MCMCs instead
 #' of just one
 #'
 #' @param y              The outcome to be analyzed
 #' @param z              The treatment whose causal effect is to be estimated
 #' @param x              An n by p matrix of potential confounders
 #' @param lambda0        Either a numeric value to be used for the value of lambda0
-#'                       or "EM" is specified to indicate that it will be estimated
+#'                       or "EB" is specified to indicate that it will be estimated
 #'                       via empirical Bayes
 #' @param lambda1        A numeric value for lambda1
 #' @param nScans         The number of MCMC scans to run
@@ -265,7 +265,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
 #'                       parameter has a default of NULL, and should only be used when lambdo0
 #'                       is provided instead of estimated using empirical Bayes
 #' @param kMax           The maximum number of covariates to be prioritized due to association with treatment
-#' @param EMiterMax      The maximum number of iterations to update EM algorithm. The algorithm is updated and
+#' @param EBiterMax      The maximum number of iterations to update EB algorithm. The algorithm is updated and
 #'                       checked for convergence every 50th MCMC scan. We recommend a high value such as 300 or
 #'                       500 for this parameter to ensure convergence, though the program will stop well short
 #'                       of 300 in most applications if it has converged.
@@ -299,7 +299,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
 
 SSL = function(nScans = 20000, burn = 10000, thin = 10,
                y, x, z, lambda1 = 0.1, thetaA = 1, thetaB = 0.2*dim(x)[2],
-               lambda0 = "EM", weight=NULL, kMax=20, EMiterMax=300) {
+               lambda0 = "EB", weight=NULL, kMax=20, EBiterMax=300) {
   
   n = dim(x)[1]
   p = dim(x)[2]
@@ -312,17 +312,17 @@ SSL = function(nScans = 20000, burn = 10000, thin = 10,
                      decreasing=TRUE)[1 : kMax]
   }
   
-  if (lambda0 == "EM") {
+  if (lambda0 == "EB") {
     w = rep(1, p)
     
     print("Running initial empirical Bayes estimates to calculate weights")
     
-    EMresults = BayesSSLem(n=n, p = ncol(x), y = y,
+    EBresults = BayesSSLem(n=n, p = ncol(x), y = y,
                            x = x, z=z, lambda1 = 0.1, lambda0start = 8,
-                           numBlocks = 10, w=w, EMiterMax = EMiterMax)
+                           numBlocks = 10, w=w, EBiterMax = EBiterMax)
     
-    thetaEst = EMresults$thetaEst
-    lambda0est = EMresults$lambda0est
+    thetaEst = EBresults$thetaEst
+    lambda0est = EBresults$lambda0est
     wj_vec = seq(0, 1, length=2000)
     
     wj_final = wj_vec[which(pStar(beta=0, thetaEst^wj_vec, 
@@ -340,11 +340,11 @@ SSL = function(nScans = 20000, burn = 10000, thin = 10,
     
     print("Now estimating empirical Bayes estimates of Lambda0 conditional on weights")
     
-    EMresults2 = BayesSSLem(n=n, p = ncol(x), y = y,
+    EBresults2 = BayesSSLem(n=n, p = ncol(x), y = y,
                             x = x, z=z, lambda1 = 0.1, lambda0start = 8,
-                            numBlocks = 10, w=w, EMiterMax = EMiterMax)
+                            numBlocks = 10, w=w, EBiterMax = EBiterMax)
     
-    lambda0est = EMresults2$lambda0est
+    lambda0est = EBresults2$lambda0est
     
     ## Now do final analysis
     

@@ -1,11 +1,11 @@
 BayesSSLemHetero = function(p, y, x, z, lambda1 = 0.1, 
                             lambda0start = 20, numBlocks = 10, w,
-                            thetaA = 1, thetaB = .2*p, EMiterMax=300) {
+                            thetaA = 1, thetaB = .2*p, EBiterMax=300) {
 
   ## ensure that this parameter is greater than 10
-  EMiterMax = max(20, EMiterMax)
+  EBiterMax = max(20, EBiterMax)
   
-  nScans = EMiterMax*60
+  nScans = EBiterMax*60
   
   n = length(y)
 
@@ -36,10 +36,10 @@ BayesSSLemHetero = function(p, y, x, z, lambda1 = 0.1,
   accTheta = 0
   
   i = 2
-  EMconverge = FALSE
+  EBconverge = FALSE
   counter = 1
 
-  while (counter < EMiterMax & EMconverge == FALSE) {
+  while (counter < EBiterMax & EBconverge == FALSE) {
 
     if (i %% 1000 == 0) print(paste(i, "MCMC scans have finished"))
     
@@ -123,7 +123,7 @@ BayesSSLemHetero = function(p, y, x, z, lambda1 = 0.1,
       if (counter > 10) {
         lD = length(diffCounter)
         mainSign = sign(diffCounter[lD] - diffCounter[1])
-        if (sign(diffCounter[lD] - diffCounter[lD-5]) != mainSign) EMconverge = TRUE 
+        if (sign(diffCounter[lD] - diffCounter[lD-5]) != mainSign) EBconverge = TRUE 
       }
     }
     i = i + 1
