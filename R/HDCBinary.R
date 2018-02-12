@@ -56,12 +56,18 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
   n = dim(x)[1]
   p = dim(x)[2]
   
-  fit.lasso.treat <- glmnet::cv.glmnet(x=as.matrix(x), y=z, intercept=TRUE, family="binomial")
-  activeX <- which(coef(fit.lasso.treat, s='lambda.1se')[-1] != 0)
+  x = scale(x)
   
-  if (length(activeX) > kMax) {
-    activeX <- order(abs(coef(fit.lasso.treat, s='lambda.1se')[-1]), 
-                     decreasing=TRUE)[1 : kMax]
+  if (length(unique(z)) == 2) {
+    fit.lasso.treat <- glmnet::cv.glmnet(x=as.matrix(x), y=z, intercept=TRUE, family="binomial")
+    activeX <- which(coef(fit.lasso.treat, s='lambda.1se')[-1] != 0)
+    
+    if (length(activeX) > kMax) {
+      activeX <- order(abs(coef(fit.lasso.treat, s='lambda.1se')[-1]), 
+                       decreasing=TRUE)[1 : kMax]
+    } 
+  }  else {
+    stop("z must be binary for heterogeneous treatment effects")
   }
   
   if (lambda0 == "EB") {
@@ -240,6 +246,9 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
 #' @param y              The outcome to be analyzed
 #' @param z              The treatment whose causal effect is to be estimated
 #' @param x              An n by p matrix of potential confounders
+#' @param z_type         String indicating whether treatment is binary or continuous. The default
+#'                       value is z_type="binary", though it should be set to z_type = "continuous"
+#'                       if the treatment is continuous
 #' @param lambda0        Either a numeric value to be used for the value of lambda0
 #'                       or "EB" is specified to indicate that it will be estimated
 #'                       via empirical Bayes
@@ -258,7 +267,10 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
 #'                       checked for convergence every 50th MCMC scan. We recommend a high value such as 300 or
 #'                       500 for this parameter to ensure convergence, though the program will stop well short
 #'                       of 300 in most applications if it has converged.
-#'                    
+#' 
+#' @param comparison_groups  parameter that controls which two levels of treatment should be compared. If the treatment
+#'                           is binary then there is no need to change this parameter since it defaults to c(1,0)
+#'                                         
 #'
 #' @return An list of values that contain the treatment effect, confidence interval for the 
 #'         treatment effect, full posterior draws for the treatment effect, posterior means
@@ -287,18 +299,32 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
 #' print(ssl$gammaPostMean)
 
 SSLBinary = function(nScans = 20000, burn = 10000, thin = 10,
-               y, x, z, lambda1 = 0.1, thetaA = 1, thetaB = 0.2*dim(x)[2],
-               lambda0 = "EB", weight=NULL, kMax=20, EBiterMax=300) {
+               y, x, z, z_type="binary", lambda1 = 0.1, thetaA = 1, thetaB = 0.2*dim(x)[2],
+               lambda0 = "EB", weight=NULL, kMax=20, EBiterMax=300, comparison_groups = c(1,0)) {
   
   n = dim(x)[1]
   p = dim(x)[2]
   
-  fit.lasso.treat <- glmnet::cv.glmnet(x=as.matrix(x), y=z, intercept=TRUE, family="binomial")
-  activeX <- which(coef(fit.lasso.treat, s='lambda.1se')[-1] != 0)
+  x = scale(x)
   
-  if (length(activeX) > kMax) {
-    activeX <- order(abs(coef(fit.lasso.treat, s='lambda.1se')[-1]), 
-                     decreasing=TRUE)[1 : kMax]
+  if (z_type == "binary") {
+    fit.lasso.treat <- glmnet::cv.glmnet(x=as.matrix(x), y=z, intercept=TRUE, family="binomial")
+    activeX <- which(coef(fit.lasso.treat, s='lambda.1se')[-1] != 0)
+    
+    if (length(activeX) > kMax) {
+      activeX <- order(abs(coef(fit.lasso.treat, s='lambda.1se')[-1]), 
+                       decreasing=TRUE)[1 : kMax]
+    } 
+  } else if (z_type == "continuous"){
+    fit.lasso.treat <- glmnet::cv.glmnet(x=as.matrix(x), y=z, intercept=TRUE)
+    activeX <- which(coef(fit.lasso.treat, s='lambda.1se')[-1] != 0)
+    
+    if (length(activeX) > kMax) {
+      activeX <- order(abs(coef(fit.lasso.treat, s='lambda.1se')[-1]), 
+                       decreasing=TRUE)[1 : kMax]
+    }
+  } else {
+    stop("z_type must be set to binary or continuous")
   }
   
   if (lambda0 == "EB") {
@@ -345,8 +371,8 @@ SSLBinary = function(nScans = 20000, burn = 10000, thin = 10,
     
     atePost = rep(NA, dim(MainAnalysisBayes$beta)[1])
     for (ni in 1 : dim(MainAnalysisBayes$beta)[1]) {
-      atePost[ni] = mean(pnorm(cbind(rep(1,n), rep(1,n), x) %*% MainAnalysisBayes$beta[ni,]) -
-        pnorm(cbind(rep(1,n), rep(0,n), x) %*% MainAnalysisBayes$beta[ni,]))
+      atePost[ni] = mean(pnorm(cbind(rep(1,n), rep(comparison_groups[1],n), x) %*% MainAnalysisBayes$beta[ni,]) -
+        pnorm(cbind(rep(1,n), rep(comparison_groups[2],n), x) %*% MainAnalysisBayes$beta[ni,]))
     }
   } else {
     
@@ -373,8 +399,8 @@ SSLBinary = function(nScans = 20000, burn = 10000, thin = 10,
                                    numBlocks = 10, w=w)
       atePost = rep(NA, dim(MainAnalysisBayes$beta)[1])
       for (ni in 1 : dim(MainAnalysisBayes$beta)[1]) {
-        atePost[ni] = mean(pnorm(cbind(rep(1,n), rep(1,n), x) %*% MainAnalysisBayes$beta[ni,]) -
-                             pnorm(cbind(rep(1,n), rep(0,n), x) %*% MainAnalysisBayes$beta[ni,]))
+        atePost[ni] = mean(pnorm(cbind(rep(1,n), rep(comparison_groups[1],n), x) %*% MainAnalysisBayes$beta[ni,]) -
+                             pnorm(cbind(rep(1,n), rep(comparison_groups[2],n), x) %*% MainAnalysisBayes$beta[ni,]))
       }
     }
   }

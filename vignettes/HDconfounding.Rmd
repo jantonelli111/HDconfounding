@@ -23,16 +23,16 @@ In this vignette we will show you how to use the main functions of the HDconfoun
 To build the package the user must install the devtools R package and then run the following code.
 
 
-```{r, echo=TRUE, message=FALSE}
+```{r, eval=TRUE, echo=TRUE, message=FALSE}
 #library(devtools)
 #install_github(repo = "jantonelli111/HDconfounding")
 #library(HDconfounding)
 ```
 
-If the user wishes to build the vignette (which will take a few more seconds to build), then the following code can be run.
+If the user wishes to build the vignette (which will take a couple minutes to build), then the following code can be run.
 
 
-```{r, echo=TRUE, message=FALSE}
+```{r, eval=TRUE, echo=TRUE, message=FALSE}
 #library(devtools)
 #install_github(repo = "jantonelli111/HDconfounding", build_vignettes = TRUE)
 library(HDconfounding)
@@ -40,19 +40,21 @@ library(HDconfounding)
 
 And to see the vignette the user can type the following into R. Note that the vignette is also available on the github repository github.com/jantonelli111/HDconfounding, which won't require building the vignette.
 
-```{r, echo=TRUE, message=FALSE, eval=FALSE}
+```{r, eval=TRUE, echo=TRUE, message=FALSE, eval=TRUE}
 #vignette("HDconfounding", package="HDconfounding")
 ```
 
-### What this package can and can't be used for
+# What this package can and can't be used for
 
 The software in this package is intended to estimate causal effects with a large (potentially larger than the sample size) covariate space. The types of data that can be addressed in this package are continuous and binary outcomes, as well as binary or continuous treatments. Our software can estimate causal effects assuming either a homogeneous or heterogeneous treatment effect. It is important to note, however, that the current software only allows for heterogeneous treatment effects when the exposure/treatment is binary. If the treatment is continuous then the homogeneous versions of the codes should be used. For the sake of this vignette, we will mostly restrict to binary treatments, though the use of continuous treatments is exactly the same, except the heterogeneous functions should not be used.
+
+# Binary treatments
 
 ### Continuous outcome, homogeneous treatment effect
 
 First let's generate some data to practice estimating treatment effects with:
 
-```{r}
+```{r, eval=TRUE}
 n = 200
 p = 20
 x = matrix(rnorm(n*p), n, p)
@@ -64,26 +66,26 @@ So our sample size is 200, we have 20 covariates, the first 2 covariates are imp
 
 First, to estimate the homogeneous treatment effect we can run the following
 
-```{r}
-sslEB = SSL(y=y, z=z, x=x, nScans=3000, burn=1000, thin=2, lambda0="EB")
+```{r, eval=TRUE}
+sslEB = SSL(y=y, z=z, x=x, nScans=300, burn=100, thin=2, lambda0="EB")
 ```
 
 This model estimates the tuning parameter $\lambda_0$ with empirical Bayes. We recommend this as it is difficult to have prior knowledge about what value this parameter should take. If the user wants to specify their own value of $\lambda_0$, then weight must also be provided (w in the main manuscript) and we recommend a value of 0.01.
 
-```{r, eval=FALSE}
-ssl = SSL(y=y, z=z, x=x, nScans=3000, burn=1000, thin=2, lambda0=15, weight = 0.01)
+```{r, eval=TRUE}
+ssl = SSL(y=y, z=z, x=x, nScans=300, burn=100, thin=2, lambda0=15, weight = 0.01)
 ```
 
 The empirical Bayes estimate is calculated using MCMC so the running time is a little longer than pre-selecting $\lambda_0$, which is one reason one might want to choose their own value if they have a large data set. It is important to note though that a poorly chosen value of $\lambda_0$ can lead to poor estimation so we highly recommend the EB option. Let's look at the results on the treatment effect:
 
-```{r}
+```{r, eval=TRUE}
 sslEB$TreatEffect
 sslEB$TreatEffectCI
 ```
 
 There are other things one can pull from the results of this analysis. We can look at the posterior inclusion probabilities of the covariates:
 
-```{r}
+```{r, eval=TRUE}
 sslEB$gammaPostMean
 ```
 
@@ -93,14 +95,148 @@ And we see that the first three covariates are included in the slab component of
 
 Now let's analyze the same data, but allowing for heterogeneous treatment effects. 
 
-```{r}
-sslEBhetero = SSLhetero(y=y, z=z, x=x, nScans=3000, burn=1000, thin=2, lambda0="EB")
+```{r, eval=TRUE}
+sslEBhetero = SSLhetero(y=y, z=z, x=x, nScans=300, burn=100, thin=2, lambda0="EB")
 ```
 
 And look at the results:
 
-```{r}
+```{r, eval=TRUE}
 sslEBhetero$TreatEffect
 sslEBhetero$TreatEffectCI
+```
+
+We can plot the estimates and intervals to compare the three models we have run. The red line is the truth.
+```{r, eval=TRUE, fig.height=6, fig.width=6}
+estimates = c(ssl$TreatEffect, sslEB$TreatEffect, sslEBhetero$TreatEffect)
+CIlower = c(ssl$TreatEffectCI[1], sslEB$TreatEffectCI[1], sslEBhetero$TreatEffectCI[1])
+CIupper = c(ssl$TreatEffectCI[2], sslEB$TreatEffectCI[2], sslEBhetero$TreatEffectCI[2])
+
+plot(1:3, estimates, pch=17, cex=2, ylim = range(c(CIlower, CIupper)) + c(-0.05, 0.05),
+     xlab="", ylab="Estimates", axes=FALSE)
+segments(x0 = 1:3, x1=1:3, y0=CIlower, y1=CIupper, lwd=3)
+abline(h = 1, lty=2, col="red")
+axis(2)
+axis(1, at=1:3, c("homo", "EB-homo", "EB-hetero"))
+```
+
+### Binary outcomes
+
+First let's generate some data to practice estimating treatment effects with:
+
+```{r, eval=TRUE}
+n = 200
+p = 20
+x = matrix(rnorm(n*p), n, p)
+z = rbinom(n, 1, p=pnorm(0.7*x[,1] + 0.3*x[,2]))
+y = rbinom(n, 1, p=pnorm(z + 0.3*x[,1] + 0.6*x[,2] + 0.5*x[,3]))
+```
+
+First, to estimate the homogeneous treatment effect we can run the following
+
+```{r, eval=TRUE}
+sslEBBinary = SSLBinary(y=y, z=z, x=x, nScans=300, burn=100, thin=2, lambda0="EB")
+```
+
+Or without empirical Bayes
+
+```{r, eval=TRUE}
+sslBinary = SSL(y=y, z=z, x=x, nScans=300, burn=100, thin=2, lambda0=15, weight = 0.01)
+```
+
+Or allowing for heterogeneous treatment effects (using empirical Bayes again)
+
+```{r, eval=TRUE}
+sslEBheteroBinary = SSLheteroBinary(y=y, z=z, x=x, nScans=300, burn=100, thin=2, lambda0="EB")
+```
+
+We can plot the estimates and intervals to compare the three models we have run. The red line is the truth.
+```{r, eval=TRUE, fig.height=6, fig.width=6}
+estimatesBinary = c(sslBinary$TreatEffect, sslEBBinary$TreatEffect, sslEBheteroBinary$TreatEffect)
+CIlowerBinary = c(sslBinary$TreatEffectCI[1], sslEBBinary$TreatEffectCI[1], sslEBheteroBinary$TreatEffectCI[1])
+CIupperBinary = c(sslBinary$TreatEffectCI[2], sslEBBinary$TreatEffectCI[2], sslEBheteroBinary$TreatEffectCI[2])
+
+plot(1:3, estimatesBinary, pch=17, cex=2, ylim = range(c(CIlowerBinary, CIupperBinary)) + c(-0.05, 0.05),
+     xlab="", ylab="Estimates", axes=FALSE)
+segments(x0 = 1:3, x1=1:3, y0=CIlowerBinary, y1=CIupperBinary, lwd=3)
+abline(h = 0.28, lty=2, col="red")
+axis(2)
+axis(1, at=1:3, c("homo", "EB-homo", "EB-hetero"))
+```
+
+# Continuous treatment
+
+Using the methods for a continuous treatment are very similar to those for the binary treatment, so we briefly detail them here. 
+
+### continuous outcomes
+
+For continuous outcomes, the methods are almost identitical to those for binary outcomes. The only difference is that you can't use the heterogeneous treatment effect feature.
+
+```{r, eval=TRUE}
+n = 200
+p = 20
+x = matrix(rnorm(n*p), n, p)
+z = rnorm(n, mean=0.7*x[,1] + 0.3*x[,2])
+y = rnorm(n, mean=z + 0.3*x[,1] + 0.6*x[,2] + 0.5*x[,3], sd=1)
+
+sslEB = SSL(y=y, z=z, x=x, nScans=300, burn=100, thin=2, lambda0="EB", z_type="continuous")
+ssl = SSL(y=y, z=z, x=x, nScans=300, burn=100, thin=2, lambda0=15, weight = 0.01, z_type="continuous")
+
+estimates = c(ssl$TreatEffect, sslEB$TreatEffect)
+CIlower = c(ssl$TreatEffectCI[1], sslEB$TreatEffectCI[1])
+CIupper = c(ssl$TreatEffectCI[2], sslEB$TreatEffectCI[2])
+
+plot(1:2, estimates, pch=17, cex=2, ylim = range(c(CIlower, CIupper)) + c(-0.05, 0.05),
+     xlab="", ylab="Estimates", axes=FALSE, xlim=c(0.5, 2.5))
+segments(x0 = 1:2, x1=1:2, y0=CIlower, y1=CIupper, lwd=3)
+abline(h = 1, lty=2, col="red")
+axis(2)
+axis(1, at=1:3, c("homo", "EB-homo", "EB-hetero"))
+```
+
+You get an error message if you try to use the heterogeneous version of the functions
+
+```{r, eval=TRUE}
+
+try({
+  SSLhetero(y=y, z=z, x=x, nScans=300, burn=100, thin=2, lambda0="EB")
+})
+
+```
+
+### binary outcomes
+
+There are slight differences when using a continuous treatment and a binary outcome. The reason for this is that the treatment effect depends on other covariates and the value of the treatment itself. One example is that the treatment effect going from z=0 to z=1 is not the same as from z=1 to z=2, etc. When using our programs with a binary outcome and a continuous treatment, you must also specify which two values you want to compare.
+
+First let's generate some data:
+
+```{r, eval=TRUE}
+n = 200
+p = 20
+x = matrix(rnorm(n*p), n, p)
+z = rnorm(n, mean=0.7*x[,1] + 0.3*x[,2])
+y = rbinom(n, 1, p=pnorm(z + 0.3*x[,1] + 0.6*x[,2] + 0.5*x[,3]))
+```
+
+Now we can analyze it, but notice we have now added a parameter called comparison_groups
+
+```{r, eval=TRUE}
+sslEB = SSLBinary(y=y, z=z, x=x, nScans=300, burn=100, thin=2, lambda0="EB", z_type="continuous", comparison_groups = c(2,0))
+ssl = SSLBinary(y=y, z=z, x=x, nScans=300, burn=100, thin=2, lambda0=15, weight = 0.01, z_type="continuous", comparison_groups = c(2,0))
+```
+
+This parameter tells us essentially what estimand we're interested in. In the case of a binary treatment it is always (1,0) because we're comparing treated to controls. When we have continuous treatments, we need to specify the two values of the treatment we are comparing. In this case we chose 2 and 0, so our code will output estimates of $E(Y^2 - Y^0)$
+
+```{r, eval=TRUE}
+estimatesBinary = c(sslBinary$TreatEffect, sslEBBinary$TreatEffect)
+CIlowerBinary = c(sslBinary$TreatEffectCI[1], sslEBBinary$TreatEffectCI[1])
+CIupperBinary = c(sslBinary$TreatEffectCI[2], sslEBBinary$TreatEffectCI[2])
+
+plot(1:2, estimatesBinary, pch=17, cex=2, ylim = range(c(CIlowerBinary, CIupperBinary)) + c(-0.05, 0.05),
+     xlab="", ylab="Estimates", axes=FALSE, xlim=c(0.5, 2.5))
+segments(x0 = 1:2, x1=1:2, y0=CIlowerBinary, y1=CIupperBinary, lwd=3)
+axis(2)
+axis(1, at=1:3, c("homo", "EB-homo", "EB-hetero"))
+abline(h = 0.437, lty=2, col="red")
 ```
 

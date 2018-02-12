@@ -59,12 +59,18 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
   n = dim(x)[1]
   p = dim(x)[2]
   
-  fit.lasso.treat <- glmnet::cv.glmnet(x=as.matrix(x), y=z, intercept=TRUE, family="binomial")
-  activeX <- which(coef(fit.lasso.treat, s='lambda.1se')[-1] != 0)
+  x = scale(x)
   
-  if (length(activeX) > kMax) {
-    activeX <- order(abs(coef(fit.lasso.treat, s='lambda.1se')[-1]), 
-                     decreasing=TRUE)[1 : kMax]
+  if (length(unique(z)) == 2) {
+    fit.lasso.treat <- glmnet::cv.glmnet(x=as.matrix(x), y=z, intercept=TRUE, family="binomial")
+    activeX <- which(coef(fit.lasso.treat, s='lambda.1se')[-1] != 0)
+    
+    if (length(activeX) > kMax) {
+      activeX <- order(abs(coef(fit.lasso.treat, s='lambda.1se')[-1]), 
+                       decreasing=TRUE)[1 : kMax]
+    } 
+  }  else {
+    stop("z must be binary for heterogeneous treatment effects")
   }
   
   if (lambda0 == "EB") {
@@ -251,6 +257,9 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
 #' @param y              The outcome to be analyzed
 #' @param z              The treatment whose causal effect is to be estimated
 #' @param x              An n by p matrix of potential confounders
+#' @param z_type         String indicating whether treatment is binary or continuous. The default
+#'                       value is z_type="binary", though it should be set to z_type = "continuous"
+#'                       if the treatment is continuous
 #' @param lambda0        Either a numeric value to be used for the value of lambda0
 #'                       or "EB" is specified to indicate that it will be estimated
 #'                       via empirical Bayes
@@ -298,18 +307,32 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
 #' print(ssl$gammaPostMean)
 
 SSL = function(nScans = 20000, burn = 10000, thin = 10,
-               y, x, z, lambda1 = 0.1, thetaA = 1, thetaB = 0.2*dim(x)[2],
+               y, x, z, z_type = "binary", lambda1 = 0.1, thetaA = 1, thetaB = 0.2*dim(x)[2],
                lambda0 = "EB", weight=NULL, kMax=20, EBiterMax=300) {
   
   n = dim(x)[1]
   p = dim(x)[2]
   
-  fit.lasso.treat <- glmnet::cv.glmnet(x=as.matrix(x), y=z, intercept=TRUE, family="binomial")
-  activeX <- which(coef(fit.lasso.treat, s='lambda.1se')[-1] != 0)
+  x = scale(x)
   
-  if (length(activeX) > kMax) {
-    activeX <- order(abs(coef(fit.lasso.treat, s='lambda.1se')[-1]), 
-                     decreasing=TRUE)[1 : kMax]
+  if (z_type == "binary") {
+    fit.lasso.treat <- glmnet::cv.glmnet(x=as.matrix(x), y=z, intercept=TRUE, family="binomial")
+    activeX <- which(coef(fit.lasso.treat, s='lambda.1se')[-1] != 0)
+    
+    if (length(activeX) > kMax) {
+      activeX <- order(abs(coef(fit.lasso.treat, s='lambda.1se')[-1]), 
+                       decreasing=TRUE)[1 : kMax]
+    } 
+  } else if (z_type == "continuous"){
+    fit.lasso.treat <- glmnet::cv.glmnet(x=as.matrix(x), y=z, intercept=TRUE)
+    activeX <- which(coef(fit.lasso.treat, s='lambda.1se')[-1] != 0)
+    
+    if (length(activeX) > kMax) {
+      activeX <- order(abs(coef(fit.lasso.treat, s='lambda.1se')[-1]), 
+                       decreasing=TRUE)[1 : kMax]
+    }
+  } else {
+    stop("z_type must be set to binary or continuous")
   }
   
   if (lambda0 == "EB") {

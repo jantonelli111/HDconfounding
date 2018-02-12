@@ -4,9 +4,9 @@
 \alias{SSL}
 \title{Estimate causal effect assuming homogeneous treatment effect}
 \usage{
-SSL(nScans = 20000, burn = 10000, thin = 10, y, x, z, lambda1 = 0.1,
-  thetaA = 1, thetaB = 0.2 * dim(x)[2], lambda0 = "EB", weight = NULL,
-  kMax = 20, EBiterMax = 300)
+SSL(nScans = 20000, burn = 10000, thin = 10, y, x, z, z_type = "binary",
+  lambda1 = 0.1, thetaA = 1, thetaB = 0.2 * dim(x)[2], lambda0 = "EB",
+  weight = NULL, kMax = 20, EBiterMax = 300)
 }
 \arguments{
 \item{nScans}{The number of MCMC scans to run}
@@ -21,6 +21,10 @@ that is kept}
 \item{x}{An n by p matrix of potential confounders}
 
 \item{z}{The treatment whose causal effect is to be estimated}
+
+\item{z_type}{String indicating whether treatment is binary or continuous. The default
+value is z_type="binary", though it should be set to z_type = "continuous"
+if the treatment is continuous}
 
 \item{lambda1}{A numeric value for lambda1}
 

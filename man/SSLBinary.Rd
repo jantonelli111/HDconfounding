@@ -5,8 +5,9 @@
 \title{Estimate causal effect assuming homogeneous treatment effect and a binary outcome}
 \usage{
 SSLBinary(nScans = 20000, burn = 10000, thin = 10, y, x, z,
-  lambda1 = 0.1, thetaA = 1, thetaB = 0.2 * dim(x)[2], lambda0 = "EB",
-  weight = NULL, kMax = 20, EBiterMax = 300)
+  z_type = "binary", lambda1 = 0.1, thetaA = 1, thetaB = 0.2 *
+  dim(x)[2], lambda0 = "EB", weight = NULL, kMax = 20, EBiterMax = 300,
+  comparison_groups = c(1, 0))
 }
 \arguments{
 \item{nScans}{The number of MCMC scans to run}
@@ -21,6 +22,10 @@ that is kept}
 \item{x}{An n by p matrix of potential confounders}
 
 \item{z}{The treatment whose causal effect is to be estimated}
+
+\item{z_type}{String indicating whether treatment is binary or continuous. The default
+value is z_type="binary", though it should be set to z_type = "continuous"
+if the treatment is continuous}
 
 \item{lambda1}{A numeric value for lambda1}
 
@@ -42,6 +47,9 @@ is provided instead of estimated using empirical Bayes}
 checked for convergence every 50th MCMC scan. We recommend a high value such as 300 or
 500 for this parameter to ensure convergence, though the program will stop well short
 of 300 in most applications if it has converged.}
+
+\item{comparison_groups}{parameter that controls which two levels of treatment should be compared. If the treatment
+is binary then there is no need to change this parameter since it defaults to c(1,0)}
 }
 \value{
 An list of values that contain the treatment effect, confidence interval for the 
