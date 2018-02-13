@@ -5,43 +5,22 @@ The paper can be found at the following link:
 
 https://arxiv.org/pdf/1704.07532.pdf
 
-This software can be loaded by entering the following into R
+Currently, the software only allows for fully Bayesian inference with MCMC, but we are in the process of writing software that also estimates posterior modes of treatment effects. This will not provide valid measures of uncertainty, but will estimate quantities with much less computation time and will allow for automatic confounder selection as some confounders will have coefficients hard thresholded to zero. If you have any questions regarding the software don't hesitate to contact Joseph Antonelli at jantonelli111@gmail.com, and please report any bugs that you find!
 
-```{r, echo=TRUE, message=FALSE}
+# How to use the HDconfounding
+
+In this section we will show you how to use the main functions of the HDconfounding R package. We will simulate data under both a binary and continuous outcome and show how to analyze them using the various functions in the package. Throughout we will use a sample size of $n=200$ and $p=200$. In general the software will work for larger sample sizes and covariate dimensions, however, we the code might take substantially longer for covariate dimensions in the thousands. 
+
+### Loading and building the package
+
+To build the package the user must install the devtools R package and then run the following code.
+
+```
 library(devtools)
 install_github(repo = "jantonelli111/HDconfounding")
 library(HDconfounding)
 ```
-A brief example of how to run the code is below. For a more detailed description of using the software, use the vignette in the vignettes folder of this repository.
 
-```{r, eval=FALSE}
-n = 200
-p = 20
-x = matrix(rnorm(n*p), n, p)
-z = rbinom(n, 1, p=pnorm(0.7*x[,1] + 0.3*x[,2]))
-y = rnorm(n, mean=z + 0.3*x[,1] + 0.6*x[,2] + 0.5*x[,3], sd=1)
-
-sslEB = SSL(y=y, z=z, x=x, nScans=3000, burn=1000, thin=2, lambda0="EB")
-
-sslEB$TreatEffect
-sslEB$TreatEffectCI
-```
-
-If you wish to see the vignette associated with the package that helps to illustrate its usage through examples, use the following lines of code. This will take a few minutes to build.
-
-```{r, echo=TRUE, message=FALSE}
-library(devtools)
-install_github(repo = "jantonelli111/HDconfounding", build_vignettes = TRUE)
-library(HDconfounding)
-```
-Then, to view the vignette simply type into R
-
-```{r, echo=TRUE, message=FALSE}
-vignette("HDconfounding", package="HDconfounding")
-```
-The PDF of the vignette can also be found in the vignettes folder of this github repository, if the user does not want to build it in their installation.
-
-Currently, the software only allows for fully Bayesian inference with MCMC, but we are in the process of writing software that also estimates posterior modes of treatment effects. This will not provide valid measures of uncertainty, but will estimate quantities with much less computation time and will allow for automatic confounder selection as some confounders will have coefficients hard thresholded to zero. If you have any questions regarding the software don't hesitate to contact Joseph Antonelli at jantonelli111@gmail.com, and please report any bugs that you find!
 
 **References**
 
