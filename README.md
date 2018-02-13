@@ -188,7 +188,7 @@ You get an error message if you try to use the heterogeneous version of the func
 
 ```
 try({
-  SSLhetero(y=y, z=z, x=x, nScans=3000, burn=1000, thin=2, lambda0="EB")
+  SSLhetero(y=y, z=z, x=x, nScans=300, burn=100, thin=2, lambda0="EB")
 })
 ```
 ![Alt text](images/Plot4.png)
