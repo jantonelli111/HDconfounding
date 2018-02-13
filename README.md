@@ -9,7 +9,7 @@ Currently, the software only allows for fully Bayesian inference with MCMC, but 
 
 # How to use the HDconfounding
 
-In this section we will show you how to use the main functions of the HDconfounding R package. We will simulate data under both a binary and continuous outcome and show how to analyze them using the various functions in the package. Throughout we will use a sample size of $n=200$ and $p=200$. In general the software will work for larger sample sizes and covariate dimensions, however, we the code might take substantially longer for covariate dimensions in the thousands. 
+In this section we will show you how to use the main functions of the HDconfounding R package. We will simulate data under both a binary and continuous outcome and show how to analyze them using the various functions in the package. Throughout we will use a sample size of $$n=200$$ and p=200. In general the software will work for larger sample sizes and covariate dimensions, however, we the code might take substantially longer for covariate dimensions in the thousands. 
 
 ### Loading and building the package
 
@@ -20,6 +20,10 @@ library(devtools)
 install_github(repo = "jantonelli111/HDconfounding")
 library(HDconfounding)
 ```
+
+<br>
+
+![Alt text](images/weightsPonly.pdf)
 
 
 **References**
