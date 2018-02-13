@@ -31,8 +31,11 @@
 #'                       of 300 in most applications if it has converged.
 #'                                          
 #'
-#' @return An list of values that contain the treatment effect, confidence interval for the 
-#'         treatment effect, and full posterior draws for the treatment effect.
+#' @return A list of values that contain the treatment effect, confidence interval for the 
+#'         treatment effect, and full posterior draws for the treatment effect. It also
+#'         contains posterior means, confidence intervals for the regression coefficients for confounders, and
+#'         the posterior mean of the binary variables indicating whether a covariate is 
+#'         important for both the treated and control group models.
 #'
 #' @export
 #' @examples
@@ -236,7 +239,13 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
   
   l = list(TreatEffect = mean(atePost),
            TreatEffectCI = quantile(atePost, c(.025, .975)),
-           TreatEffectPost = atePost)
+           TreatEffectPost = atePost,
+           betaPostMean1 = apply(MainAnalysisBayes1$beta[,2:(p+1)], 2, mean),
+           betaPostCI1 = apply(MainAnalysisBayes1$beta[,2:(p+1)], 2, quantile, c(.025, .975)),
+           gammaPostMean1 = apply(MainAnalysisBayes1$gamma, 2, mean),
+           betaPostMean0 = apply(MainAnalysisBayes0$beta[,2:(p+1)], 2, mean),
+           betaPostCI0 = apply(MainAnalysisBayes0$beta[,2:(p+1)], 2, quantile, c(.025, .975)),
+           gammaPostMean0 = apply(MainAnalysisBayes0$gamma, 2, mean))
   
   return(l)
 }
@@ -280,7 +289,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
 #'                       of 300 in most applications if it has converged.
 #'                    
 #'
-#' @return An list of values that contain the treatment effect, confidence interval for the 
+#' @return A list of values that contain the treatment effect, confidence interval for the 
 #'         treatment effect, full posterior draws for the treatment effect, posterior means
 #'         and confidence intervals for the regression coefficients for confounders, and
 #'         the posterior mean of the binary variables indicating whether a covariate is 

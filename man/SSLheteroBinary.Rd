@@ -44,8 +44,11 @@ checked for convergence every 50th MCMC scan. We recommend a high value such as 
 of 300 in most applications if it has converged.}
 }
 \value{
-An list of values that contain the treatment effect, confidence interval for the 
-        treatment effect, and full posterior draws for the treatment effect.
+A list of values that contain the treatment effect, confidence interval for the 
+        treatment effect, and full posterior draws for the treatment effect. It also
+        contains posterior means, confidence intervals for the regression coefficients for confounders, and
+        the posterior mean of the binary variables indicating whether a covariate is 
+        important for both the treated and control group models.
 }
 \description{
 This function will take in the observed data and estimate a treatment effect. y,x, and z must
