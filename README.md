@@ -167,6 +167,9 @@ ssl = SSL(y=y, z=z, x=x, nScans=3000, burn=1000,
 estimates = c(ssl$TreatEffect, sslEB$TreatEffect)
 CIlower = c(ssl$TreatEffectCI[1], sslEB$TreatEffectCI[1])
 CIupper = c(ssl$TreatEffectCI[2], sslEB$TreatEffectCI[2])
+```
+
+And now we can again plot the results.
 
 plot(1:2, estimates, pch=17, cex=2, 
      ylim = range(c(CIlower, CIupper)) + c(-0.05, 0.05),
@@ -184,6 +187,7 @@ try({
   SSLhetero(y=y, z=z, x=x, nScans=3000, burn=1000, thin=2, lambda0="EB")
 })
 ```
+![Alt text](images/Plot4.png)
 
 ### binary outcomes
 
