@@ -172,14 +172,17 @@ CIupper = c(ssl$TreatEffectCI[2], sslEB$TreatEffectCI[2])
 And now we can again plot the results.
 
 ```
-plot(1:2, estimates, pch=17, cex=2, 
-     ylim = range(c(CIlower, CIupper)) + c(-0.05, 0.05),
-     xlab="", ylab="Estimates", axes=FALSE, xlim=c(0.5, 2.5))
-segments(x0 = 1:2, x1=1:2, y0=CIlower, y1=CIupper, lwd=3)
-abline(h = 1, lty=2, col="red")
+par(mfrow=c(1,2), pty='s')
+plot(1:2, estimatesBinary, pch=17, cex=2, ylim = range(c(CIlowerBinary, CIupperBinary)) + c(-0.05, 0.05),
+     xlab="", ylab="Estimates", axes=FALSE, xlim=c(0.5, 2.5), main="Effect estimates")
+segments(x0 = 1:2, x1=1:2, y0=CIlowerBinary, y1=CIupperBinary, lwd=3)
 axis(2)
 axis(1, at=1:3, c("homo", "EB-homo", "EB-hetero"))
+
+## plot posterior inclusion probabilities
+barplot(sslEB$gammaPostMean, main="Posterior inclusion probabilities", names.arg=1:p)
 ```
+![Alt text](images/Plot3.png)
 
 You get an error message if you try to use the heterogeneous version of the functions
 
@@ -220,15 +223,18 @@ estimatesBinary = c(sslBinary$TreatEffect, sslEBBinary$TreatEffect)
 CIlowerBinary = c(sslBinary$TreatEffectCI[1], sslEBBinary$TreatEffectCI[1])
 CIupperBinary = c(sslBinary$TreatEffectCI[2], sslEBBinary$TreatEffectCI[2])
 
-plot(1:2, estimatesBinary, pch=17, cex=2, 
-     ylim = range(c(CIlowerBinary, CIupperBinary)) + c(-0.05, 0.05),
-     xlab="", ylab="Estimates", axes=FALSE, xlim=c(0.5, 2.5))
+par(mfrow=c(1,2), pty='s')
+plot(1:2, estimatesBinary, pch=17, cex=2, ylim = range(c(CIlowerBinary, CIupperBinary)) + c(-0.05, 0.05),
+     xlab="", ylab="Estimates", axes=FALSE, xlim=c(0.5, 2.5), main="Effect estimates")
 segments(x0 = 1:2, x1=1:2, y0=CIlowerBinary, y1=CIupperBinary, lwd=3)
 axis(2)
 axis(1, at=1:3, c("homo", "EB-homo", "EB-hetero"))
 abline(h = 0.437, lty=2, col="red")
-```
 
+## plot posterior inclusion probabilities
+barplot(sslEBBinary$gammaPostMean, main="Posterior inclusion probabilities", names.arg=1:p)
+```
+![Alt text](images/Plot5.png)
 
 **References**
 
