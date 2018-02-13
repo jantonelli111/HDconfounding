@@ -80,8 +80,8 @@ abline(h = 1, lty=2, col="red")
 axis(2)
 axis(1, at=1:3, c("homo", "EB-homo", "EB-hetero"))
 
-## plot posterior inclusion probabilities
-barplot(sslEB$gammaPostMean, main="Posterior inclusion probabilities", names.arg=1:p)
+## plot posterior inclusion probabilities (for first 20 covariates for brevity)
+barplot(sslEB$gammaPostMean[1:20], main="Posterior inclusion probabilities", names.arg=1:20)
 ```
 
 ![Alt text](images/Plot1.png)
