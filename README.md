@@ -21,9 +21,7 @@ install_github(repo = "jantonelli111/HDconfounding")
 library(HDconfounding)
 ```
 
-<br>
-
-![Alt text](images/weightsPonly.pdf)
+![Alt text](images/heatmaps.png)
 
 
 **References**
