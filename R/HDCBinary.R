@@ -29,8 +29,8 @@
 #'                       500 for this parameter to ensure convergence, though the program will stop well short
 #'                       of 300 in most applications if it has converged.                    
 #'
-#' @return A list of values that contain the treatment effect, confidence interval for the 
-#'         treatment effect, and full posterior draws for the treatment effect. It also
+#' @return A list of values that contains the treatment effect and confidence interval for the 
+#'         treatment effect. It also
 #'         contains posterior means, confidence intervals for the regression coefficients for confounders, and
 #'         the posterior mean of the binary variables indicating whether a covariate is 
 #'         important for both the treated and control group models.
@@ -173,12 +173,23 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
     ###################### Now combine them to estimate ATE ############################
     ####################################################################################
     
-    
     atePost = rep(NA, dim(MainAnalysisBayes1$beta)[1])
     for (ni in 1 : dim(MainAnalysisBayes1$beta)[1]) {
       atePost[ni] = mean(pnorm(cbind(rep(1,n), x) %*% MainAnalysisBayes1$beta[ni,]) -
                            pnorm(cbind(rep(1,n), x) %*% MainAnalysisBayes0$beta[ni,]))
     }
+    
+    nBoot = 500
+    ateBoot = matrix(NA, nBoot, dim(MainAnalysisBayes1$beta)[1])
+    for (bi in 1 : nBoot) {
+      samp = sample(1:n, n, replace=TRUE)
+      xBoot = x[samp,]
+      for (ni in 1 : dim(MainAnalysisBayes1$beta)[1]) {
+        ateBoot[bi,ni] = mean(pnorm(cbind(rep(1,n), xBoot) %*% MainAnalysisBayes1$beta[ni,]) -
+                             pnorm(cbind(rep(1,n), xBoot) %*% MainAnalysisBayes0$beta[ni,]))
+      }
+    }
+    
   } else {
     
     if (is.null(weight)) {
@@ -224,12 +235,22 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
         atePost[ni] = mean(pnorm(cbind(rep(1,n), x) %*% MainAnalysisBayes1$beta[ni,]) -
                              pnorm(cbind(rep(1,n), x) %*% MainAnalysisBayes0$beta[ni,]))
       }
+      
+      nBoot = 500
+      ateBoot = matrix(NA, nBoot, dim(MainAnalysisBayes1$beta)[1])
+      for (bi in 1 : nBoot) {
+        samp = sample(1:n, n, replace=TRUE)
+        xBoot = x[samp,]
+        for (ni in 1 : dim(MainAnalysisBayes1$beta)[1]) {
+          ateBoot[bi,ni] = mean(pnorm(cbind(rep(1,n), xBoot) %*% MainAnalysisBayes1$beta[ni,]) -
+                                  pnorm(cbind(rep(1,n), xBoot) %*% MainAnalysisBayes0$beta[ni,]))
+        }
+      }
     }
   }
   
   l = list(TreatEffect = mean(atePost),
-           TreatEffectCI = quantile(atePost, c(.025, .975)),
-           TreatEffectPost = atePost,
+           TreatEffectCI = quantile(ateBoot, c(.025, .975)),
            betaPostMean1 = apply(MainAnalysisBayes1$beta[,2:(p+1)], 2, mean),
            betaPostCI1 = apply(MainAnalysisBayes1$beta[,2:(p+1)], 2, quantile, c(.025, .975)),
            gammaPostMean1 = apply(MainAnalysisBayes1$gamma, 2, mean),
@@ -282,7 +303,7 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
 #'                                         
 #'
 #' @return A list of values that contain the treatment effect, confidence interval for the 
-#'         treatment effect, full posterior draws for the treatment effect, posterior means
+#'         treatment effect, posterior means
 #'         and confidence intervals for the regression coefficients for confounders, and
 #'         the posterior mean of the binary variables indicating whether a covariate is 
 #'         important.
@@ -378,11 +399,24 @@ SSLBinary = function(nScans = 20000, burn = 10000, thin = 10,
                                  x = x, z=z, lambda1 = 0.1, lambda0 = lambda0est,
                                  numBlocks = 10, w=w)
     
+    
     atePost = rep(NA, dim(MainAnalysisBayes$beta)[1])
     for (ni in 1 : dim(MainAnalysisBayes$beta)[1]) {
       atePost[ni] = mean(pnorm(cbind(rep(1,n), rep(comparison_groups[1],n), x) %*% MainAnalysisBayes$beta[ni,]) -
-        pnorm(cbind(rep(1,n), rep(comparison_groups[2],n), x) %*% MainAnalysisBayes$beta[ni,]))
+                           pnorm(cbind(rep(1,n), rep(comparison_groups[2],n), x) %*% MainAnalysisBayes$beta[ni,]))
     }
+    
+    nBoot = 500
+    ateBoot = matrix(NA, nBoot, dim(MainAnalysisBayes$beta)[1])
+    for (bi in 1 : nBoot) {
+      samp = sample(1:n, n, replace=TRUE)
+      xBoot = x[samp,]
+      for (ni in 1 : dim(MainAnalysisBayes$beta)[1]) {
+        ateBoot[bi,ni] = mean(pnorm(cbind(rep(1,n), rep(comparison_groups[1],n), xBoot) %*% MainAnalysisBayes$beta[ni,]) -
+                                pnorm(cbind(rep(1,n), rep(comparison_groups[2],n), xBoot) %*% MainAnalysisBayes$beta[ni,]))
+      }
+    }
+    
   } else {
     
     if (is.null(weight)) {
@@ -406,17 +440,29 @@ SSLBinary = function(nScans = 20000, burn = 10000, thin = 10,
       MainAnalysisBayes = BayesSSLBinary(nScans=nScans, burn=burn, thin=thin, n=n, p = ncol(x), y = y, 
                                    x = x, z=z, lambda1 = 0.1, lambda0 = lambda0,
                                    numBlocks = 10, w=w)
+
       atePost = rep(NA, dim(MainAnalysisBayes$beta)[1])
       for (ni in 1 : dim(MainAnalysisBayes$beta)[1]) {
         atePost[ni] = mean(pnorm(cbind(rep(1,n), rep(comparison_groups[1],n), x) %*% MainAnalysisBayes$beta[ni,]) -
                              pnorm(cbind(rep(1,n), rep(comparison_groups[2],n), x) %*% MainAnalysisBayes$beta[ni,]))
       }
+      
+      nBoot = 500
+      ateBoot = matrix(NA, nBoot, dim(MainAnalysisBayes$beta)[1])
+      for (bi in 1 : nBoot) {
+        samp = sample(1:n, n, replace=TRUE)
+        xBoot = x[samp,]
+        for (ni in 1 : dim(MainAnalysisBayes$beta)[1]) {
+          ateBoot[bi,ni] = mean(pnorm(cbind(rep(1,n), rep(comparison_groups[1],n), xBoot) %*% MainAnalysisBayes$beta[ni,]) -
+                                  pnorm(cbind(rep(1,n), rep(comparison_groups[2],n), xBoot) %*% MainAnalysisBayes$beta[ni,]))
+        }
+      }
+      
     }
   }
   
   l = list(TreatEffect = mean(atePost),
-           TreatEffectCI = quantile(atePost, c(.025, .975)),
-           TreatEffectPost = atePost,
+           TreatEffectCI = quantile(ateBoot, c(.025, .975)),
            betaPostMean = apply(MainAnalysisBayes$beta[,3:(p+2)], 2, mean),
            betaPostCI = apply(MainAnalysisBayes$beta[,3:(p+2)], 2, quantile, c(.025, .975)),
            gammaPostMean = apply(MainAnalysisBayes$gamma, 2, mean))
