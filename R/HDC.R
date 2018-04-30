@@ -229,17 +229,28 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
       Design = cbind(rep(1,n), x)
       
       atePost = rep(NA, dim(MainAnalysisBayes1$beta)[1])
-      
-      for (i in 1 : dim(MainAnalysisBayes1$beta)[1]) {
-        atePost[i] = mean(Design %*% MainAnalysisBayes1$beta[i,] -
-                            Design %*% MainAnalysisBayes0$beta[i,])
+      for (ni in 1 : dim(MainAnalysisBayes1$beta)[1]) {
+        atePost[ni] = mean(cbind(rep(1,n), x) %*% MainAnalysisBayes1$beta[ni,] -
+                             cbind(rep(1,n), x) %*% MainAnalysisBayes0$beta[ni,])
       }
+      
+      nBoot = 500
+      ateBoot = matrix(NA, nBoot, dim(MainAnalysisBayes1$beta)[1])
+      for (bi in 1 : nBoot) {
+        samp = sample(1:n, n, replace=TRUE)
+        xBoot = x[samp,]
+        for (ni in 1 : dim(MainAnalysisBayes1$beta)[1]) {
+          ateBoot[bi,ni] = mean(cbind(rep(1,n), xBoot) %*% MainAnalysisBayes1$beta[ni,] -
+                                  cbind(rep(1,n), xBoot) %*% MainAnalysisBayes0$beta[ni,])
+        }
+      }
+      
+      
     }
   }
   
   l = list(TreatEffect = mean(atePost),
-           TreatEffectCI = quantile(atePost, c(.025, .975)),
-           TreatEffectPost = atePost,
+           TreatEffectCI = quantile(ateBoot, c(.025, .975)),
            betaPostMean1 = apply(MainAnalysisBayes1$beta[,2:(p+1)], 2, mean),
            betaPostCI1 = apply(MainAnalysisBayes1$beta[,2:(p+1)], 2, quantile, c(.025, .975)),
            gammaPostMean1 = apply(MainAnalysisBayes1$gamma, 2, mean),
