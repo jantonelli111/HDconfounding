@@ -48,8 +48,9 @@ BayesSSLemHetero = function(p, y, x, z, lambda1 = 0.1,
 
     ## SIGMA^2
     SS = sum((y - Design %*% betaPost[i-1,])^2)
-    sigma2Post[i] = 1/rgamma(1, (n-1)/2 + p/2,
-                             SS/2 + t(betaPost[i-1,]) %*% Dinv %*% betaPost[i-1,]/2)
+    sigma2Post[i] = 1/rgamma(1, (n-1)/2 + p/2, 
+                             SS/2 + t(betaPost[i-1,-c(1)]) %*% 
+                               Dinv[-c(1),-c(1)] %*% betaPost[i-1,-c(1)]/2)
 
     ## THETA using MH update
     BoundaryLow2 = max(0, thetaPost[i-1] - 0.02)
@@ -172,8 +173,9 @@ BayesSSLHetero = function(nScans, burn, thin,
 
     ## SIGMA^2
     SS = sum((y - Design %*% betaPost[i-1,])^2)
-    sigma2Post[i] = 1/rgamma(1, (n-1)/2 + p/2,
-                             SS/2 + t(betaPost[i-1,]) %*% Dinv %*% betaPost[i-1,]/2)
+    sigma2Post[i] = 1/rgamma(1, (n-1)/2 + p/2, 
+                             SS/2 + t(betaPost[i-1,-c(1)]) %*% 
+                               Dinv[-c(1),-c(1)] %*% betaPost[i-1,-c(1)]/2)
 
     ## THETA using MH update
     BoundaryLow2 = max(0, thetaPost[i-1] - 0.02)
