@@ -123,8 +123,8 @@ BayesSSLemBinary = function(n, p, y, x, z, lambda1 = 0.1,
       diffCounter = c(diffCounter, lambda0)
       counter = counter + 1
       
-      ## test if it has converged yet. Only test after 10 iterations
-      if (counter > 10) {
+      ## test if it has converged yet. Only test after 5000 scans
+      if (i > 5000) {
         lD = length(diffCounter)
         mainSign = sign(diffCounter[lD] - diffCounter[1])
         if (sign(diffCounter[lD] - diffCounter[lD-5]) != mainSign) EBconverge = TRUE 

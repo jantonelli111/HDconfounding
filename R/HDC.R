@@ -82,7 +82,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
     print("Running initial empirical Bayes estimates to calculate weights for the treated group")
     
     EBresults1 = BayesSSLemHetero(p = ncol(x), y = y[z==1],
-                                  x = x[z==1,], lambda1 = 0.1, lambda0start = 8,
+                                  x = x[z==1,], lambda1 = lambda1, lambda0start = 20,
                                   numBlocks = 10, w=w, EBiterMax = EBiterMax)
     
     
@@ -91,7 +91,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
     wj_vec = seq(0, 1, length=2000)
     
     wj_final1 = wj_vec[which(pStar(beta=0, thetaEst1^wj_vec,
-                                   lambda1=0.1, lambda0=lambda0est1) < 0.1)[1]]
+                                   lambda1=lambda1, lambda0=lambda0est1) < 0.1)[1]]
     
     
     
@@ -107,7 +107,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
     print("Now estimating empirical Bayes estimates of Lambda0 conditional on weights for treated group")
     
     EBresults1.2 = BayesSSLemHetero(p = ncol(x), y = y[z==1],
-                                    x = x[z==1,], lambda1 = 0.1, lambda0start = 8,
+                                    x = x[z==1,], lambda1 = lambda1, lambda0start = 20,
                                     numBlocks = 10, w=w, EBiterMax = EBiterMax)
     
     lambda0est1.2 = EBresults1.2$lambda0est
@@ -117,7 +117,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
     print("Running main analysis for treated group now")
     
     MainAnalysisBayes1 = BayesSSLHetero(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==1],
-                                        x = x[z==1,], lambda1 = 0.1, lambda0 = lambda0est1.2,
+                                        x = x[z==1,], lambda1 = lambda1, lambda0 = lambda0est1.2,
                                         numBlocks = 10, w=w)
     
     
@@ -132,7 +132,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
     print("Running initial empirical Bayes estimates to calculate weights for the control group")
     
     EBresults0 = BayesSSLemHetero(p = ncol(x), y = y[z==0],
-                                  x = x[z==0,], lambda1 = 0.1, lambda0start = 8,
+                                  x = x[z==0,], lambda1 = lambda1, lambda0start = 20,
                                   numBlocks = 10, w=w, EBiterMax = EBiterMax)
     
     
@@ -141,7 +141,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
     wj_vec = seq(0, 1, length=2000)
     
     wj_final0 = wj_vec[which(pStar(beta=0, thetaEst0^wj_vec,
-                                   lambda1=0.1, lambda0=lambda0est0) < 0.1)[1]]
+                                   lambda1=lambda1, lambda0=lambda0est0) < 0.1)[1]]
     
     
     
@@ -157,7 +157,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
     print("Now estimating empirical Bayes estimates of Lambda0 conditional on weights for control group")
     
     EBresults0.2 = BayesSSLemHetero(p = ncol(x), y = y[z==0],
-                                    x = x[z==0,], lambda1 = 0.1, lambda0start = 8,
+                                    x = x[z==0,], lambda1 = lambda1, lambda0start = 20,
                                     numBlocks = 10, w=w, EBiterMax = EBiterMax)
     
     lambda0est0.2 = EBresults0.2$lambda0est
@@ -167,7 +167,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
     print("Running main analysis for control group now")
     
     MainAnalysisBayes0 = BayesSSLHetero(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==0],
-                                        x = x[z==0,], lambda1 = 0.1, lambda0 = lambda0est0.2,
+                                        x = x[z==0,], lambda1 = lambda1, lambda0 = lambda0est0.2,
                                         numBlocks = 10, w=w)
     
     
@@ -188,11 +188,11 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
     nBoot = 500
     ateBoot = matrix(NA, nBoot, dim(MainAnalysisBayes1$beta)[1])
     for (bi in 1 : nBoot) {
-      samp = sample(1:n, n, replace=TRUE)
-      xBoot = x[samp,]
+      uvec = c(0,sort(runif(n-1)),1)
+      gvec = diff(uvec)
       for (ni in 1 : dim(MainAnalysisBayes1$beta)[1]) {
-        ateBoot[bi,ni] = mean(cbind(rep(1,n), xBoot) %*% MainAnalysisBayes1$beta[ni,] -
-                                cbind(rep(1,n), xBoot) %*% MainAnalysisBayes0$beta[ni,])
+        ateBoot[bi,ni] = weighted.mean(cbind(rep(1,n), x) %*% MainAnalysisBayes1$beta[ni,] -
+                                cbind(rep(1,n), x) %*% MainAnalysisBayes0$beta[ni,], w=gvec)
       }
     }
         
@@ -216,7 +216,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
       print("Running main analysis for treated group now")
       
       MainAnalysisBayes1 = BayesSSLHetero(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==1],
-                                          x = x[z==1,], lambda1 = 0.1, lambda0 = lambda0,
+                                          x = x[z==1,], lambda1 = lambda1, lambda0 = lambda0,
                                           numBlocks = 10, w=w)
       
       
@@ -228,7 +228,7 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
       print("Running main analysis for control group now")
       
       MainAnalysisBayes0 = BayesSSLHetero(nScans=nScans, burn=burn, thin=thin, p = ncol(x), y = y[z==0],
-                                          x = x[z==0,], lambda1 = 0.1, lambda0 = lambda0,
+                                          x = x[z==0,], lambda1 = lambda1, lambda0 = lambda0,
                                           numBlocks = 10, w=w)
       
       
@@ -249,11 +249,11 @@ SSLhetero = function(nScans = 20000, burn = 10000, thin = 10,
       nBoot = 500
       ateBoot = matrix(NA, nBoot, dim(MainAnalysisBayes1$beta)[1])
       for (bi in 1 : nBoot) {
-        samp = sample(1:n, n, replace=TRUE)
-        xBoot = x[samp,]
+        uvec = c(0,sort(runif(n-1)),1)
+        gvec = diff(uvec)
         for (ni in 1 : dim(MainAnalysisBayes1$beta)[1]) {
-          ateBoot[bi,ni] = mean(cbind(rep(1,n), xBoot) %*% MainAnalysisBayes1$beta[ni,] -
-                                  cbind(rep(1,n), xBoot) %*% MainAnalysisBayes0$beta[ni,])
+          ateBoot[bi,ni] = weighted.mean(cbind(rep(1,n), x) %*% MainAnalysisBayes1$beta[ni,] -
+                                  cbind(rep(1,n), x) %*% MainAnalysisBayes0$beta[ni,], w=gvec)
         }
       }
       
@@ -373,15 +373,17 @@ SSL = function(nScans = 20000, burn = 10000, thin = 10,
     print("Running initial empirical Bayes estimates to calculate weights")
     
     EBresults = BayesSSLem(n=n, p = ncol(x), y = y,
-                           x = x, z=z, lambda1 = 0.1, lambda0start = 8,
+                           x = x, z=z, lambda1 = lambda1, lambda0start = 10,
                            numBlocks = 10, w=w, EBiterMax = EBiterMax)
     
     thetaEst = EBresults$thetaEst
     lambda0est = EBresults$lambda0est
     wj_vec = seq(0, 1, length=2000)
     
+    print(lambda0est)
+    
     wj_final = wj_vec[which(pStar(beta=0, thetaEst^wj_vec, 
-                                  lambda1=0.1, lambda0=lambda0est) < 0.1)[1]]
+                                  lambda1=lambda1, lambda0=lambda0est) < 0.1)[1]]
     
     
     if (length(activeX) == 0) {
@@ -396,17 +398,18 @@ SSL = function(nScans = 20000, burn = 10000, thin = 10,
     print("Now estimating empirical Bayes estimates of Lambda0 conditional on weights")
     
     EBresults2 = BayesSSLem(n=n, p = ncol(x), y = y,
-                            x = x, z=z, lambda1 = 0.1, lambda0start = 8,
+                            x = x, z=z, lambda1 = lambda1, lambda0start = 10,
                             numBlocks = 10, w=w, EBiterMax = EBiterMax)
     
     lambda0est = EBresults2$lambda0est
+    print(lambda0est)
     
     ## Now do final analysis
     
     print("Running final analysis now")
     
     MainAnalysisBayes = BayesSSL(nScans=nScans, burn=burn, thin=thin, n=n, p = ncol(x), y = y, 
-                                 x = x, z=z, lambda1 = 0.1, lambda0 = lambda0est,
+                                 x = x, z=z, lambda1 = lambda1, lambda0 = lambda0est,
                                  numBlocks = 10, w=w)
   } else {
     
@@ -429,7 +432,7 @@ SSL = function(nScans = 20000, burn = 10000, thin = 10,
       print("Running final analysis now")
       
       MainAnalysisBayes = BayesSSL(nScans=nScans, burn=burn, thin=thin, n=n, p = ncol(x), y = y, 
-                                   x = x, z=z, lambda1 = 0.1, lambda0 = lambda0,
+                                   x = x, z=z, lambda1 = lambda1, lambda0 = lambda0,
                                    numBlocks = 10, w=w)
     }
   }
