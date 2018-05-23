@@ -373,7 +373,7 @@ SSL = function(nScans = 20000, burn = 10000, thin = 10,
     print("Running initial empirical Bayes estimates to calculate weights")
     
     EBresults = BayesSSLem(n=n, p = ncol(x), y = y,
-                           x = x, z=z, lambda1 = lambda1, lambda0start = 10,
+                           x = x, z=z, lambda1 = lambda1, lambda0start = 8,
                            numBlocks = 10, w=w, EBiterMax = EBiterMax)
     
     thetaEst = EBresults$thetaEst
@@ -398,7 +398,7 @@ SSL = function(nScans = 20000, burn = 10000, thin = 10,
     print("Now estimating empirical Bayes estimates of Lambda0 conditional on weights")
     
     EBresults2 = BayesSSLem(n=n, p = ncol(x), y = y,
-                            x = x, z=z, lambda1 = lambda1, lambda0start = 10,
+                            x = x, z=z, lambda1 = lambda1, lambda0start = 8,
                             numBlocks = 10, w=w, EBiterMax = EBiterMax)
     
     lambda0est = EBresults2$lambda0est

@@ -107,20 +107,21 @@ BayesSSLem = function(n, p, y, x, z, lambda1 = 0.1,
     
     ## LAMBDA0
     lambda0Post[i] =  lambda0
-    if (i %% 50 == 0 & i > 200) {
+    if (i %% 50 == 0 & i > 500) {
       wut1 = apply(gammaPost[(i-49):i, ], 1, sum)
       wut2 = sum(apply(tauPost[(i-49):i,] * (gammaPost[(i-49):i, ] == 0), 2, mean))
       
       lambda0 = sqrt(2*(p - mean(wut1)) / mean(wut2))
       diff = lambda0 - lambda0Post[i]
       lambda0Post[i] = lambda0
+      print(lambda0)
       diffCounter = c(diffCounter, lambda0)
       counter = counter + 1
-      ## test if it has converged yet. Only test after 5000 scans
-      if (i > 5000) {
+      ## test if it has converged yet. Only test after 2000 scans
+      if (i > 2000) {
         lD = length(diffCounter)
         mainSign = sign(diffCounter[lD] - diffCounter[1])
-        if (sign(diffCounter[lD] - diffCounter[lD-5]) != mainSign) {
+        if (sign(diffCounter[lD] - diffCounter[lD-10]) != mainSign) {
           EBconverge = TRUE
         }
       }
