@@ -1,4 +1,4 @@
-BayesSSLemBinary = function(nScans = 30000, burn = 27000, thin = 3,
+BayesSSLemBinary = function(nScans = 30000,
                             n, p, y, x, z, lambda1 = 0.1,
                             lambda0start = 8, numBlocks = 10, w,
                             thetaA = 1, thetaB = .2*p) {
@@ -109,13 +109,18 @@ BayesSSLemBinary = function(nScans = 30000, burn = 27000, thin = 3,
       wut2 = sum(apply(tauPost[(i-49):i,] * (gammaPost[(i-49):i, ] == 0), 2, mean))
       
       lambda0 = sqrt(2*(p - mean(wut1)) / mean(wut2))
-      diff = lambda0 - lambda0Post[i]
-      print(c(lambda0, diff))
       lambda0Post[i] = lambda0
+      if (i > 5000) {
+        sign1 = sign(lambda0Post[i] - lambda0Post[1])
+        sign2 = sign(lambda0Post[i] - lambda0Post[i-3000])
+        
+        if (sign1 != sign2) break
+      }
+      
     }
   }
   
-  keep = seq((burn + 1), nScans, by=thin)
+  keep = (i-3000):(i-1)
   return(list(lambda0est = mean(lambda0Post[keep], na.rm=TRUE),
               thetaEst = mean(thetaPost[keep]),
               betaEst = apply(betaPost[keep,], 2, mean)))

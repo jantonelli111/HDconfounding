@@ -6,7 +6,7 @@
 \usage{
 SSLBinary(nScans = 20000, burn = 10000, thin = 10, y, x, z,
   z_type = "binary", lambda1 = 0.1, thetaA = 1, thetaB = 0.2 *
-  dim(x)[2], lambda0 = "EB", weight = NULL, kMax = 20, EBiterMax = 300,
+  dim(x)[2], lambda0 = "EB", weight = NULL, kMax = 20,
   comparison_groups = c(1, 0))
 }
 \arguments{
@@ -42,11 +42,6 @@ parameter has a default of NULL, and should only be used when lambdo0
 is provided instead of estimated using empirical Bayes}
 
 \item{kMax}{The maximum number of covariates to be prioritized due to association with treatment}
-
-\item{EBiterMax}{The maximum number of iterations to update EB algorithm. The algorithm is updated and
-checked for convergence every 50th MCMC scan. We recommend a high value such as 300 or
-500 for this parameter to ensure convergence, though the program will stop well short
-of 300 in most applications if it has converged.}
 
 \item{comparison_groups}{parameter that controls which two levels of treatment should be compared. If the treatment
 is binary then there is no need to change this parameter since it defaults to c(1,0)}

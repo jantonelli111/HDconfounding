@@ -372,7 +372,7 @@ SSL = function(nScans = 20000, burn = 10000, thin = 10,
     lambda0est = EBresults$lambda0est
     wj_vec = seq(0, 1, length=2000)
     
-    print(lambda0est)
+    print(paste("Lambda0 =", lambda0est))
     
     wj_final = wj_vec[which(pStar(beta=0, thetaEst^wj_vec, 
                                   lambda1=lambda1, lambda0=lambda0est) < 0.1)[1]]
@@ -394,7 +394,7 @@ SSL = function(nScans = 20000, burn = 10000, thin = 10,
                             numBlocks = 10, w=w)
     
     lambda0est = EBresults2$lambda0est
-    print(lambda0est)
+    print(paste("Lambda0 =", lambda0est))
     
     ## Now do final analysis
     

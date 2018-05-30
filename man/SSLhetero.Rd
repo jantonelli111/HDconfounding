@@ -5,8 +5,8 @@
 \title{Estimate causal effect allowing for heterogeneous treatment effects}
 \usage{
 SSLhetero(nScans = 20000, burn = 10000, thin = 10, y, x, z,
-  lambda1 = 0.1, thetaA = 1, thetaB = 0.2 * dim(x)[2], lambda0 = "EB",
-  weight = NULL, kMax = 20, EBiterMax = 300)
+  lambda1 = 0.1, thetaA = 1, thetaB = 0.1 * dim(x)[2], lambda0 = "EB",
+  weight = NULL, kMax = 20)
 }
 \arguments{
 \item{nScans}{The number of MCMC scans to run}
@@ -37,11 +37,6 @@ parameter has a default of NULL, and should only be used when lambdo0
 is provided instead of estimated using empirical Bayes}
 
 \item{kMax}{The maximum number of covariates to be prioritized due to association with treatment}
-
-\item{EBiterMax}{The maximum number of iterations to update EB algorithm. The algorithm is updated and
-checked for convergence every 50th MCMC scan. We recommend a high value such as 300 or
-500 for this parameter to ensure convergence, though the program will stop well short
-of 300 in most applications if it has converged.}
 }
 \value{
 A list of values that contain the treatment effect, confidence interval for the 
