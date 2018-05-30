@@ -24,10 +24,6 @@
 #'                       parameter has a default of NULL, and should only be used when lambdo0
 #'                       is provided instead of estimated using empirical Bayes
 #' @param kMax           The maximum number of covariates to be prioritized due to association with treatment
-#' @param EBiterMax      The maximum number of iterations to update empirical Bayes algorithm. The algorithm is updated and
-#'                       checked for convergence every 50th MCMC scan. We recommend a high value such as 300 or
-#'                       500 for this parameter to ensure convergence, though the program will stop well short
-#'                       of 300 in most applications if it has converged.                    
 #'
 #' @return A list of values that contains the treatment effect and confidence interval for the 
 #'         treatment effect. It also
@@ -54,7 +50,7 @@
 
 SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
                      y, x, z, lambda1 = 0.1, thetaA = 1, thetaB = 0.2*dim(x)[2],
-                     lambda0 = "EB", weight=NULL, kMax=20, EBiterMax=300) {
+                     lambda0 = "EB", weight=NULL, kMax=20) {
   
   n = dim(x)[1]
   p = dim(x)[2]
@@ -80,7 +76,7 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
     
     EBresults1 = BayesSSLemHeteroBinary(p = ncol(x), y = y[z==1],
                                   x = x[z==1,], lambda1 = lambda1, lambda0start = 20,
-                                  numBlocks = 10, w=w, EBiterMax = EBiterMax)
+                                  numBlocks = 10, w=w)
     
     
     thetaEst1 = EBresults1$thetaEst
@@ -105,7 +101,7 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
     
     EBresults1.2 = BayesSSLemHeteroBinary(p = ncol(x), y = y[z==1],
                                     x = x[z==1,], lambda1 = lambda1, lambda0start = 20,
-                                    numBlocks = 10, w=w, EBiterMax = EBiterMax)
+                                    numBlocks = 10, w=w)
     
     lambda0est1.2 = EBresults1.2$lambda0est
     
@@ -130,7 +126,7 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
     
     EBresults0 = BayesSSLemHeteroBinary(p = ncol(x), y = y[z==0],
                                   x = x[z==0,], lambda1 = lambda1, lambda0start = 20,
-                                  numBlocks = 10, w=w, EBiterMax = EBiterMax)
+                                  numBlocks = 10, w=w)
     
     
     thetaEst0 = EBresults0$thetaEst
@@ -155,7 +151,7 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
     
     EBresults0.2 = BayesSSLemHeteroBinary(p = ncol(x), y = y[z==0],
                                     x = x[z==0,], lambda1 = lambda1, lambda0start = 20,
-                                    numBlocks = 10, w=w, EBiterMax = EBiterMax)
+                                    numBlocks = 10, w=w)
     
     lambda0est0.2 = EBresults0.2$lambda0est
     
@@ -293,11 +289,6 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
 #'                       parameter has a default of NULL, and should only be used when lambdo0
 #'                       is provided instead of estimated using empirical Bayes
 #' @param kMax           The maximum number of covariates to be prioritized due to association with treatment
-#' @param EBiterMax      The maximum number of iterations to update EB algorithm. The algorithm is updated and
-#'                       checked for convergence every 50th MCMC scan. We recommend a high value such as 300 or
-#'                       500 for this parameter to ensure convergence, though the program will stop well short
-#'                       of 300 in most applications if it has converged.
-#' 
 #' @param comparison_groups  parameter that controls which two levels of treatment should be compared. If the treatment
 #'                           is binary then there is no need to change this parameter since it defaults to c(1,0)
 #'                                         
@@ -330,7 +321,7 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
 
 SSLBinary = function(nScans = 20000, burn = 10000, thin = 10,
                y, x, z, z_type="binary", lambda1 = 0.1, thetaA = 1, thetaB = 0.2*dim(x)[2],
-               lambda0 = "EB", weight=NULL, kMax=20, EBiterMax=300, comparison_groups = c(1,0)) {
+               lambda0 = "EB", weight=NULL, kMax=20, comparison_groups = c(1,0)) {
   
   n = dim(x)[1]
   p = dim(x)[2]
@@ -364,7 +355,7 @@ SSLBinary = function(nScans = 20000, burn = 10000, thin = 10,
     
     EBresults = BayesSSLemBinary(n=n, p = ncol(x), y = y,
                                  x = x, z=z, lambda1 = lambda1, lambda0start = 20,
-                                 numBlocks = 10, w=w, EBiterMax = EBiterMax)
+                                 numBlocks = 10, w=w)
     
     thetaEst = EBresults$thetaEst
     lambda0est = EBresults$lambda0est
@@ -387,7 +378,7 @@ SSLBinary = function(nScans = 20000, burn = 10000, thin = 10,
     
     EBresults2 = BayesSSLemBinary(n=n, p = ncol(x), y = y,
                                   x = x, z=z, lambda1 = lambda1, lambda0start = 20,
-                                  numBlocks = 10, w=w, EBiterMax = EBiterMax)
+                                  numBlocks = 10, w=w)
     
     lambda0est = EBresults2$lambda0est
     

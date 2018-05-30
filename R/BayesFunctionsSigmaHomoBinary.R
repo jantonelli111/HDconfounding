@@ -1,10 +1,7 @@
-BayesSSLemBinary = function(n, p, y, x, z, lambda1 = 0.1, 
-                            lambda0start = 20, numBlocks = 10, w,
-                            thetaA = 1, thetaB = .2*p, EBiterMax=300) {
-  
-  EBiterMax = max(20, EBiterMax)
-  
-  nScans = EBiterMax*60
+BayesSSLemBinary = function(nScans = 30000, burn = 27000, thin = 3,
+                            n, p, y, x, z, lambda1 = 0.1,
+                            lambda0start = 8, numBlocks = 10, w,
+                            thetaA = 1, thetaB = .2*p) {
   
   betaPost = matrix(NA, nScans, p+2)
   gammaPost = matrix(NA, nScans, p)
@@ -16,7 +13,7 @@ BayesSSLemBinary = function(n, p, y, x, z, lambda1 = 0.1,
   betaPost[1,] = rnorm(p+2, sd=0.2)
   gammaPost[1,] = rep(0,p)
   sigma2Post[1] = 1
-  thetaPost[1] = 0.02
+  thetaPost[1] = 0.1
   tauPost[1,] = rgamma(p, 2)
   
   sigmaA = 0.001
@@ -24,19 +21,13 @@ BayesSSLemBinary = function(n, p, y, x, z, lambda1 = 0.1,
   lambda0 = lambda0start
   lambda0Post[1] = lambda0
   
-  diffCounter = c()
-  
   K = 10000
   
   Design = as.matrix(cbind(rep(1, n), z, x))
   
   accTheta = 0
   
-  i = 2
-  EBconverge = FALSE
-  counter = 1
-  
-  while (counter < EBiterMax & EBconverge == FALSE) {
+  for (i in 2 : nScans) {
     
     if (i %% 1000 == 0) print(paste(i, "MCMC scans have finished"))
     
@@ -119,22 +110,15 @@ BayesSSLemBinary = function(n, p, y, x, z, lambda1 = 0.1,
       
       lambda0 = sqrt(2*(p - mean(wut1)) / mean(wut2))
       diff = lambda0 - lambda0Post[i]
+      print(c(lambda0, diff))
       lambda0Post[i] = lambda0
-      diffCounter = c(diffCounter, lambda0)
-      counter = counter + 1
-      
-      ## test if it has converged yet. Only test after 2000 scans
-      if (i > 2000) {
-        lD = length(diffCounter)
-        mainSign = sign(diffCounter[lD] - diffCounter[1])
-        if (sign(diffCounter[lD] - diffCounter[lD-10]) != mainSign) EBconverge = TRUE 
-      }
     }
-    i = i + 1
   }
   
-  return(list(lambda0est = lambda0,
-              thetaEst = thetaPost[i-1]))
+  keep = seq((burn + 1), nScans, by=thin)
+  return(list(lambda0est = mean(lambda0Post[keep], na.rm=TRUE),
+              thetaEst = mean(thetaPost[keep]),
+              betaEst = apply(betaPost[keep,], 2, mean)))
 }
 
 

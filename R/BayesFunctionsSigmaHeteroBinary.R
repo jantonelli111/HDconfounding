@@ -1,11 +1,7 @@
-BayesSSLemHeteroBinary = function(p, y, x, z, lambda1 = 0.1, 
+BayesSSLemHeteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
+                                  p, y, x, lambda1 = 0.1,
                                   lambda0start = 20, numBlocks = 10, w,
-                                  thetaA = 1, thetaB = .2*p, EBiterMax=300) {
-  
-  ## ensure that this parameter is greater than 10
-  EBiterMax = max(20, EBiterMax)
-  
-  nScans = EBiterMax*60
+                                  thetaA = 1, thetaB = .2*p) {
   
   n = length(y)
   
@@ -27,19 +23,13 @@ BayesSSLemHeteroBinary = function(p, y, x, z, lambda1 = 0.1,
   lambda0 = lambda0start
   lambda0Post[1] = lambda0
   
-  diffCounter = c()
-  
   K = 10000
   
   Design = as.matrix(cbind(rep(1, n), x))
   
   accTheta = 0
   
-  i = 2
-  EBconverge = FALSE
-  counter = 1
-  
-  while (counter < EBiterMax & EBconverge == FALSE) {
+  for (i in 2 : nScans) {
     
     if (i %% 1000 == 0) print(paste(i, "MCMC scans have finished"))
     
@@ -122,22 +112,16 @@ BayesSSLemHeteroBinary = function(p, y, x, z, lambda1 = 0.1,
       
       lambda0 = sqrt(2*(p - mean(wut1)) / mean(wut2))
       diff = lambda0 - lambda0Post[i]
+      print(c(lambda0, diff))
       lambda0Post[i] = lambda0
-      diffCounter = c(diffCounter, lambda0)
-      counter = counter + 1
       
-      ## test if it has converged yet. Only test after 2000 scans
-      if (i > 2000) {
-        lD = length(diffCounter)
-        mainSign = sign(diffCounter[lD] - diffCounter[1])
-        if (sign(diffCounter[lD] - diffCounter[lD-10]) != mainSign) EBconverge = TRUE 
-      }
     }
-    i = i + 1
   }
   
-  return(list(lambda0est = lambda0,
-              thetaEst = thetaPost[i-1]))
+  keep = seq((burn + 1), nScans, by=thin)
+  return(list(lambda0est = mean(lambda0Post[keep], na.rm=TRUE),
+              thetaEst = mean(thetaPost[keep]),
+              betaEst = apply(betaPost[keep,], 2, mean)))
 }
 
 

@@ -1,11 +1,7 @@
-BayesSSLem = function(n, p, y, x, z, lambda1 = 0.1, 
-                      lambda0start = 20, numBlocks = 10, w,
-                      thetaA = 1, thetaB = .2*p, EBiterMax=300) {
-  
-  ## ensure that this parameter is greater than 10
-  EBiterMax = max(20, EBiterMax)
-  
-  nScans = EBiterMax*60
+BayesSSLem = function(nScans = 30000, burn = 27000, thin = 3,
+                      n, p, y, x, z, lambda1 = 0.1,
+                      lambda0start = 8, numBlocks = 10, w,
+                      thetaA = 1, thetaB = .2*p) {
   
   betaPost = matrix(NA, nScans, p+2)
   gammaPost = matrix(NA, nScans, p)
@@ -17,7 +13,7 @@ BayesSSLem = function(n, p, y, x, z, lambda1 = 0.1,
   betaPost[1,] = rnorm(p+2, sd=0.2)
   gammaPost[1,] = rep(0,p)
   sigma2Post[1] = 1
-  thetaPost[1] = 0.02
+  thetaPost[1] = 0.1
   tauPost[1,] = rgamma(p, 2)
   
   sigmaA = 0.001
@@ -25,29 +21,23 @@ BayesSSLem = function(n, p, y, x, z, lambda1 = 0.1,
   lambda0 = lambda0start
   lambda0Post[1] = lambda0
   
-  diffCounter = c()
-  
   K = 10000
   
   Design = as.matrix(cbind(rep(1, n), z, x))
   
   accTheta = 0
   
-  i = 2
-  EBconverge = FALSE
-  counter = 1
-  while (counter < EBiterMax & EBconverge == FALSE) {
+  for (i in 2 : nScans) {
     
-    if (i %% 1000 == 0) print(paste(i, "MCMC scans have finished"))
+    if (i %% 100 == 0) print(i)
     
     D = diag(c(K,K,tauPost[i-1,]))
     Dinv = diag(1/diag(D))
     
     ## SIGMA^2
     SS = sum((y - Design %*% betaPost[i-1,])^2)
-    sigma2Post[i] = 1/rgamma(1, (n-1)/2 + p/2, 
-                             SS/2 + t(betaPost[i-1,-c(1,2)]) %*% 
-                               Dinv[-c(1,2),-c(1,2)] %*% betaPost[i-1,-c(1,2)]/2)
+    sigma2Post[i] = 1/rgamma(1, (n-1)/2 + (p+2)/2,
+                             SS/2 + t(betaPost[i-1,]) %*% Dinv %*% betaPost[i-1,]/2)
     
     ## THETA using MH update
     BoundaryLow2 = max(0, thetaPost[i-1] - 0.02)
@@ -57,9 +47,9 @@ BayesSSLem = function(n, p, y, x, z, lambda1 = 0.1,
     BoundaryLow1 = max(0, thetaNew - 0.02)
     BoundaryAbove1 = min(1, thetaNew + 0.02)
     
-    logAR = LogTheta(thetaNew, a=thetaA, b=thetaB, w=w, gamma=gammaPost[i-1,]) + 
+    logAR = LogTheta(thetaNew, a=thetaA, b=thetaB, w=w, gamma=gammaPost[i-1,]) +
       dunif(thetaPost[i-1], BoundaryLow1, BoundaryAbove1, log=TRUE) -
-      LogTheta(thetaPost[i-1], a=thetaA, b=thetaB, w=w, gamma=gammaPost[i-1,]) - 
+      LogTheta(thetaPost[i-1], a=thetaA, b=thetaB, w=w, gamma=gammaPost[i-1,]) -
       dunif(thetaNew, BoundaryLow2, BoundaryAbove2, log=TRUE)
     
     if (logAR > log(runif(1))) {
@@ -81,16 +71,16 @@ BayesSSLem = function(n, p, y, x, z, lambda1 = 0.1,
       tempY = y - (Design[,-wp] %*% betaPost[i,-wp])
       tempV = sigma2Post[i]*solve((t(Design[,wp]) %*% Design[,wp]) + Dinv[wp,wp])
       tempMU = (1/sigma2Post[i])*tempV %*% t(Design[,wp]) %*% tempY
-      betaPost[i,wp] = mvtnorm::rmvnorm(1, mean=tempMU, sigma=tempV)
+      betaPost[i,wp] = rmvnorm(1, mean=tempMU, sigma=tempV)
     }
     
     ## GAMMA
     RandOrder = sample(1:p, p, replace=FALSE)
     for (j in RandOrder) {
       tempProb = ((lambda1/sqrt(sigma2Post[i]))*(thetaPost[i]^w[j])*
-                    exp(-(lambda1/sqrt(sigma2Post[i]))*abs(betaPost[i,j+2]))) / 
+                    exp(-(lambda1/sqrt(sigma2Post[i]))*abs(betaPost[i,j+2]))) /
         (((lambda1/sqrt(sigma2Post[i]))*(thetaPost[i]^w[j])*
-            exp(-(lambda1/sqrt(sigma2Post[i]))*abs(betaPost[i,j+2]))) + 
+            exp(-(lambda1/sqrt(sigma2Post[i]))*abs(betaPost[i,j+2]))) +
            ((lambda0Post[i-1]/sqrt(sigma2Post[i]))*(1 - thetaPost[i]^w[j])*
               exp(-(lambda0Post[i-1]/sqrt(sigma2Post[i]))*abs(betaPost[i,j+2]))))
       gammaPost[i,j] = rbinom(1, 1, tempProb)
@@ -102,7 +92,7 @@ BayesSSLem = function(n, p, y, x, z, lambda1 = 0.1,
       tempLambda = gammaPost[i,j]*lambda1 + (1 - gammaPost[i,j])*lambda0Post[i-1]
       lambdaPrime = tempLambda^2
       muPrime = sqrt(tempLambda^2 * sigma2Post[i] / betaPost[i,j+2]^2)
-      tauPost[i,j] = 1 / statmod::rinvgauss(1, muPrime, lambdaPrime)
+      tauPost[i,j] = 1 / rinvgauss(1, muPrime, lambdaPrime)
     }
     
     ## LAMBDA0
@@ -113,25 +103,18 @@ BayesSSLem = function(n, p, y, x, z, lambda1 = 0.1,
       
       lambda0 = sqrt(2*(p - mean(wut1)) / mean(wut2))
       diff = lambda0 - lambda0Post[i]
+      print(c(lambda0, diff))
       lambda0Post[i] = lambda0
-      print(lambda0)
-      diffCounter = c(diffCounter, lambda0)
-      counter = counter + 1
-      ## test if it has converged yet. Only test after 2000 scans
-      if (i > 2000) {
-        lD = length(diffCounter)
-        mainSign = sign(diffCounter[lD] - diffCounter[1])
-        if (sign(diffCounter[lD] - diffCounter[lD-10]) != mainSign) {
-          EBconverge = TRUE
-        }
-      }
+      
     }
-    i = i + 1
   }
   
-  return(list(lambda0est = lambda0,
-              thetaEst = thetaPost[i-1]))
+  keep = seq((burn + 1), nScans, by=thin)
+  return(list(lambda0est = mean(lambda0Post[keep], na.rm=TRUE),
+              thetaEst = mean(thetaPost[keep]),
+              betaEst = apply(betaPost[keep,], 2, mean)))
 }
+
 
 
 BayesSSL = function(nScans, burn, thin, 
@@ -170,9 +153,8 @@ BayesSSL = function(nScans, burn, thin,
     
     ## SIGMA^2
     SS = sum((y - Design %*% betaPost[i-1,])^2)
-    sigma2Post[i] = 1/rgamma(1, (n-1)/2 + p/2, 
-                             SS/2 + t(betaPost[i-1,-c(1,2)]) %*% 
-                               Dinv[-c(1,2),-c(1,2)] %*% betaPost[i-1,-c(1,2)]/2)
+    sigma2Post[i] = 1/rgamma(1, (n-1)/2 + (p+2)/2,
+                             SS/2 + t(betaPost[i-1,]) %*% Dinv %*% betaPost[i-1,]/2)
     
     ## THETA using MH update
     BoundaryLow2 = max(0, thetaPost[i-1] - 0.02)
