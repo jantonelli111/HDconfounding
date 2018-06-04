@@ -1,6 +1,6 @@
 # HDconfounding
 
-This respository is an R package to implement the methods in "High-dimensional confounding adjustment using continuous spike and slab priors" by Joseph Antonelli, Giovanni Parmigiani, and Francesca Dominici.
+This repository is an R package to implement the methods in "High-dimensional confounding adjustment using continuous spike and slab priors" by Joseph Antonelli, Giovanni Parmigiani, and Francesca Dominici.
 The paper can be found at the following link:
 
 https://arxiv.org/pdf/1704.07532.pdf
