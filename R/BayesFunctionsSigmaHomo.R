@@ -104,9 +104,9 @@ BayesSSLem = function(nScans = 30000,
       lambda0 = sqrt(2*(p - mean(wut1)) / mean(wut2))
       lambda0Post[i] = lambda0
       
-      if (i > 5000) {
+      if (i > 7000) {
         sign1 = sign(lambda0Post[i] - lambda0Post[1])
-        sign2 = sign(lambda0Post[i] - lambda0Post[i-3000])
+        sign2 = sign(lambda0Post[i] - lambda0Post[i-6000])
         
         if (sign1 != sign2) break
       }
