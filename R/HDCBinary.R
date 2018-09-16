@@ -245,6 +245,11 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
     }
   }
   
+  WAIC = WAIChetero(y=y, x=x, t=z, Post1=MainAnalysisBayes1,
+                    Post0 = MainAnalysisBayes0,
+                    type="binary",
+                    totalScans = dim(MainAnalysisBayes1$beta)[1])
+  
   l = list(TreatEffect = mean(atePost),
            TreatEffectCI = quantile(ateBoot, c(.025, .975)),
            betaPostMean1 = apply(MainAnalysisBayes1$beta[,2:(p+1)], 2, mean),
@@ -252,7 +257,8 @@ SSLheteroBinary = function(nScans = 20000, burn = 10000, thin = 10,
            gammaPostMean1 = apply(MainAnalysisBayes1$gamma, 2, mean),
            betaPostMean0 = apply(MainAnalysisBayes0$beta[,2:(p+1)], 2, mean),
            betaPostCI0 = apply(MainAnalysisBayes0$beta[,2:(p+1)], 2, quantile, c(.025, .975)),
-           gammaPostMean0 = apply(MainAnalysisBayes0$gamma, 2, mean))
+           gammaPostMean0 = apply(MainAnalysisBayes0$gamma, 2, mean),
+           WAIC = WAIC)
   
   return(l)
 }
@@ -452,11 +458,16 @@ SSLBinary = function(nScans = 20000, burn = 10000, thin = 10,
     }
   }
   
+  WAIC = WAIChomo(y=y, x=x, t=z, Post=MainAnalysisBayes,
+                  type="binary",
+                  totalScans = dim(MainAnalysisBayes$beta)[1])
+  
   l = list(TreatEffect = mean(atePost),
            TreatEffectCI = quantile(ateBoot, c(.025, .975)),
            betaPostMean = apply(MainAnalysisBayes$beta[,3:(p+2)], 2, mean),
            betaPostCI = apply(MainAnalysisBayes$beta[,3:(p+2)], 2, quantile, c(.025, .975)),
-           gammaPostMean = apply(MainAnalysisBayes$gamma, 2, mean))
+           gammaPostMean = apply(MainAnalysisBayes$gamma, 2, mean),
+           WAIC = WAIC)
   
   return(l)
 }

@@ -80,4 +80,3 @@ print(ssl$TreatEffectCI)
 ## Print the posterior inclusion probabilities for confounders
 print(ssl$gammaPostMean)
 }
-

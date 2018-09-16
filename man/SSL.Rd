@@ -4,9 +4,9 @@
 \alias{SSL}
 \title{Estimate causal effect assuming homogeneous treatment effect}
 \usage{
-SSL(nScans = 20000, burn = 10000, thin = 10, y, x, z, z_type = "binary",
-  lambda1 = 0.1, thetaA = 1, thetaB = 0.2 * dim(x)[2], lambda0 = "EB",
-  weight = NULL, kMax = 20)
+SSL(nScans = 20000, burn = 10000, thin = 10, y, x, z,
+  z_type = "binary", lambda1 = 0.1, thetaA = 1, thetaB = 0.2 *
+  dim(x)[2], lambda0 = "EB", weight = NULL, kMax = 20)
 }
 \arguments{
 \item{nScans}{The number of MCMC scans to run}
@@ -77,4 +77,3 @@ print(ssl$TreatEffectCI)
 ## Print the posterior inclusion probabilities for confounders
 print(ssl$gammaPostMean)
 }
-

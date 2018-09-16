@@ -237,7 +237,8 @@ BayesSSLHeteroBinary = function(nScans, burn, thin,
   
   keep = seq((burn + 1), nScans, by=thin)
   return(list(beta = betaPost[keep,],
-              gamma = gammaPost[keep,]))
+              gamma = gammaPost[keep,],
+              sigma2 = sigma2Post[keep]))
 }
 
 

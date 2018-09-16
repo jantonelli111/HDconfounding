@@ -10,7 +10,7 @@ License: GPL (>= 2)
 LazyData: TRUE
 URL: https://github.com/jantonelli111/HDconfounding
 BugReports: https://github.com/jantonelli111/HDconfounding/issues
-RoxygenNote: 5.0.1
+RoxygenNote: 6.1.0
 Suggests: 
     ggplot2,
     knitr,

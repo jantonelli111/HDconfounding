@@ -5,8 +5,8 @@
 \title{Estimate causal effect allowing for heterogeneous treatment effects and binary outcomes}
 \usage{
 SSLheteroBinary(nScans = 20000, burn = 10000, thin = 10, y, x, z,
-  lambda1 = 0.1, thetaA = 1, thetaB = 0.2 * dim(x)[2], lambda0 = "EB",
-  weight = NULL, kMax = 20)
+  lambda1 = 0.1, thetaA = 1, thetaB = 0.2 * dim(x)[2],
+  lambda0 = "EB", weight = NULL, kMax = 20)
 }
 \arguments{
 \item{nScans}{The number of MCMC scans to run}
@@ -69,4 +69,3 @@ ssl = SSLheteroBinary(y=y, z=z, x=x, nScans=3000, burn=1000, thin=2)
 print(ssl$TreatEffect)
 print(ssl$TreatEffectCI)
 }
-
