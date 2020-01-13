@@ -71,7 +71,7 @@ BayesSSLem = function(nScans = 30000,
       tempY = y - (Design[,-wp] %*% betaPost[i,-wp])
       tempV = sigma2Post[i]*solve((t(Design[,wp]) %*% Design[,wp]) + Dinv[wp,wp])
       tempMU = (1/sigma2Post[i])*tempV %*% t(Design[,wp]) %*% tempY
-      betaPost[i,wp] = rmvnorm(1, mean=tempMU, sigma=tempV)
+      betaPost[i,wp] = mvtnorm::rmvnorm(1, mean=tempMU, sigma=tempV)
     }
     
     ## GAMMA
